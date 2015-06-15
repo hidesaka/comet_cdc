@@ -1,0 +1,634 @@
+$(function () {
+   var diam = 180;
+   var w = 650;
+   var h = 650;
+
+   var margin = {top: 20, right: 150, bottom: 100, left: 80};
+   var width = w - margin.left - margin.right;
+   var height = 300 - margin.top - margin.bottom;
+
+   var numWires = [ 
+      396, 396, 396, 408, 408, 420, 420,
+      432, 432, 444, 444, 456, 456, 468, 
+      468, 480, 480, 492, 492, 504, 504, 
+      516, 516, 528, 528, 540, 540, 552, 
+      552, 564, 564, 576, 576, 588, 588, 
+      600, 600, 612, 612
+   ];
+
+   var get_xypos = function(layerid, wireid, num_wires) {
+      var r = 50+(layerid-1);
+      var deg = (wireid-1)/num_wires*360;
+      var rad = deg/180.*Math.PI;
+      var x = r*Math.cos(rad);
+      var y = r*Math.sin(rad);
+      return {x: x, y: y};
+   }
+
+   var holes = [];
+   for (i=0; i<numWires.length; i++) {
+      for (j=0; j<numWires[i]; j++) {
+         holes.push(get_xypos(i+1, j+1, numWires[i]));
+      }
+   }
+
+   var append_svg = function(id, xtitle, ytitle, xdomain, ydomain, options) {
+      var svg = d3.select(id).append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      var xScale;
+      if (options.xaxis_type=="roundBands") {
+         //console.log("select xaxis roundBands");
+         xScale = d3.scale.ordinal().domain(xdomain).rangeRoundBands([0, width]);
+      } else if (options.xaxis_type=="time") {
+         //console.log("select xaxis time");
+         xScale = d3.time.scale().domain(xdomain).range([0, width]).nice();
+      } else {
+         //console.log("select xaxis linear");
+         xScale = d3.scale.linear().domain(xdomain).range([0, width]);
+      }
+      var yScale = d3.scale.linear().domain(ydomain).range([height, 0]).nice();
+
+      var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+      if (options.xaxis_type=="time") {
+         xAxis.ticks(10).tickFormat(d3.time.format('%m/%d'));
+      }
+      var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+      svg.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+      .append("text")
+      .attr("x", width)
+      .attr("y", 30)
+      .attr("text-anchor", "end")
+      .text(xtitle);
+
+      svg.append("g")
+      .attr("class", "axis")
+      .call(yAxis)
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -55)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text(ytitle);
+
+      return { "svg": svg, "xScale": xScale, "yScale": yScale };
+   };
+
+   var makeBarChart = function (frame, data, xdata, ydata, fillColor, tooltip) {
+      frame.svg.selectAll(".bar")
+      .data(data)
+      .enter().append("rect")
+      .attr("fill",fillColor)
+      .attr("x", function(d) { return frame.xScale(d[xdata]); })
+      .attr("width", frame.xScale.rangeBand()*0.95)
+      .attr("y", height)
+      .attr("height", 0)
+      .transition()
+      .duration(1000)
+      .attr("y", function(d) { return frame.yScale(d[ydata]); })
+      .attr("height", function(d) { return height - frame.yScale(d[ydata]); });
+
+      if (tooltip) {
+         makeTooltip(frame, "rect", data, xdata, ydata, tooltip.label, tooltip.options);
+      }
+   };
+
+   var makeScatterPlot = function (frame, data, xdata, ydata, options, legend_entry, tooltip) {
+
+      if (options.line_stroke) {
+         var line = d3.svg.line()
+         .x(function(d) { return frame.xScale(d[xdata]); })
+         .y(function(d) { return frame.yScale(d[ydata]); })
+
+         frame.svg.append("path")
+         .attr("stroke", options.line_stroke)
+         .attr("fill", "none")
+         .attr("d", line(data));
+      }
+
+      frame.svg.selectAll("circle")
+      .data(data)
+      .enter()
+      .append("circle")
+      .attr("cx", function(d,i) { return frame.xScale(d[xdata]); })
+      .attr("cy", function(d,i) { return frame.yScale(d[ydata]); })
+      .attr("r",  3)
+      .attr("fill", options.fill)
+      .attr("stroke",options.stroke)
+      .attr("stroke-width", options.stroke_width);
+
+      if (tooltip) {
+         makeTooltip(frame, "circle", data, xdata, ydata, tooltip.label, tooltip.options);
+      }
+      // add legend   
+      var legend = frame.svg.append("g")
+      .attr("x", width - 65)
+      .attr("y", 25)
+      .attr("height", 100)
+      .attr("width", 100);
+
+      if (legend_entry.length==0) return;
+
+      legend.selectAll('g').data(legend_entry)
+      .enter()
+      .append('g')
+      .each(function(d, i) {
+         var g = d3.select(this);
+         //g.append("circle")
+         //.attr("cx", w-220)
+         //.attr("cy", d.ypos+5)
+         //.attr("r", 2)
+         //.style("fill", d.fill);
+
+         g.append("text")
+         .attr("x", w-210)
+         .attr("y", d.ypos)
+         .attr("height",30)
+         .attr("width",100)
+         .style("fill", d.fill)
+         .text(d.label);
+
+      });
+   };
+
+   var makeLine = function (frame, class_name, points) {
+      var line = d3.svg.line().x(function(d) { return frame.xScale(d.x); }).y(function(d) { return frame.yScale(d.y); });
+      frame.svg.append("path").datum(points).attr("class", class_name).attr("d", line);
+   };
+
+   var makeTooltip = function (frame, class_name, data, xdata, ydata, labels, options) {
+
+      var focus = frame.svg.append("g").attr("class","focus").style("display","none");
+      focus.append("rect").attr("opacity","0.6").attr("x",9).attr("y",9).attr("rx",2).attr("ry",2).attr("width",options.width).attr("height",options.height);
+
+      focus.selectAll("text").data(labels).enter().append("text")
+      .attr("x", 14)
+      .attr("y", 12)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "10px")
+      .attr("fill", "white");
+
+      frame.svg.selectAll(class_name)
+      .data(data)
+      .on("mouseover", function() { focus.style("display", null); })
+      .on("mouseout", function() { focus.style("display", "none"); })
+      .on("mousemove", function(d) {
+         var xval = (typeof(xdata)=='function')? xdata(d): d[xdata];
+         var yval = (typeof(ydata)=='function')? ydata(d): d[ydata];
+         focus.select("rect").attr("transform", "translate(" + frame.xScale(xval) + "," + (frame.yScale(yval)-10) + ")");
+         focus.selectAll("text").attr("transform", function(_,i) { return "translate(" + frame.xScale(xval) + "," +  (frame.yScale(yval)+i*15) + ")"; });
+         focus.selectAll("text").text(function(label,i) {
+            var msg = label.prefix || '';
+            for (var i=0; i<label.data.length; i++) {
+               if (typeof(label.data[i])=='function') {
+                  msg += label.data[i](d);
+               } else {
+                  msg += d[label.data[i]];
+               }
+               //msg += label.data[i](d);
+               if (i<label.data.length-1) msg += label.separator || '';
+            }
+            msg += label.postfix || '';
+
+            return msg;
+         });
+      });
+   };
+
+
+   var plotWires = function (svg, status, sort_wires) {
+      svg.selectAll("circle.hoge")
+      .data(sort_wires)
+      .enter()
+      .append("circle")
+      .on("mouseover", function(d) { 
+         //d3.select(this).attr("fill", "orange");
+      })
+      .on("mouseout", function(d) { 
+         //d3.select(this).attr("fill", "red");
+      })
+      .on("click", function(d) {
+         //   var rs = d3.select(this).attr("r");
+         //   d3.select("body").select("p").text(rs);
+      })
+      .attr({
+         cx: function(d) { return +get_xypos(d.layerid, d.wireid, numWires[d.layerid-1])["x"]/diam*w*0.9 + w/2; },
+         cy: function(d) { return -get_xypos(d.layerid, d.wireid, numWires[d.layerid-1])["y"]/diam*h*0.9 + h/2; },
+         r: function(d) { return 0; }
+      })
+      .transition()
+      .delay(function(d,i) { return (1000/sort_wires.length)*i; })
+      .duration(3000)
+      .attr({
+         r: function(d) { return 1.5; },
+         //stroke: function(d) { return (d.tbase=="50")?"#f8d7d7":"#bdd0f4" },
+         fill: function(d) { return (d.tbase=="50")?"#ed5454":"#3874e3" },
+         "stroke_width": "1px"
+      })
+      .each("end", function() {
+
+         var r1 = parseFloat(status.current_num_layers/39.0*100).toFixed(0);
+         var r2 = parseFloat(sort_wires.length/holes.length*100).toFixed(0);
+         var r3 = parseFloat(status.current_num_sense/4986*100).toFixed(0);
+         var r4 = parseFloat(status.current_num_field/14562*100).toFixed(0);
+
+         // Show status
+         var texts=[
+            status.current_day,
+            "Days: "+status.current_num_days,
+            "Layer: "+r1+"% ("+status.current_num_layers+"/39)",
+            "Wire:  "+r2+"% ("+sort_wires.length+"/"+holes.length+")",
+            "Sense: "+r3+"% ("+status.current_num_sense+"/4986)",
+            "Field: "+r4+"% ("+status.current_num_field+"/14562)"];
+
+            svg.selectAll("text")
+            .data(texts)
+            .enter()
+            .append('text')
+            .text(function(txt) { return txt; })
+            .attr({
+               x: function(_, i) { return w/2.0; },
+               y: function(_, i) { return (i==0)?h/2.5:h/2.5+(i+1.0)*25; },
+               "font-style": "italic",
+               "font-size": function(_,i) { return (i==0)?"25px":"20px"; },
+               "text-anchor": function(_,i) { return (i==0)?"middle":"middle"; },
+               "fill": "white"
+            })
+            .transition()
+            .duration(1000)
+            .ease("linear")
+            .attr({
+               "fill": function(_, i) { var col="black"; if (i==4) { col="red"; } else if (i==5) { col="blue"; } return col; }
+            });
+      });
+   };
+
+   var get_status = function (sort_wires, day_info) {
+      var i, j;
+      var current_day = sort_wires[sort_wires.length-1]["date"];
+
+      var checked_layer=[];
+      for (j=1; j<=39; j++) {
+         checked_layer[j-1] = false;
+      }
+      var current_num_sense=0;
+      var current_num_field=0;
+      for (i=0; i<sort_wires.length; i++) {
+         if (sort_wires[i].tbase==50) current_num_sense++;
+         if (sort_wires[i].tbase==80) current_num_field++;
+         for (j=1; j<=39; j++) {
+            if (sort_wires[i].layerid==j) checked_layer[j-1] = true;
+         }
+      }
+      var current_num_layers=0;
+      for (j=1; j<=39; j++) {
+         if (checked_layer[j-1]) current_num_layers++;
+      }
+      var current_num_days=1;
+      for (i=1; i<sort_wires.length; i++) {
+         if (sort_wires[i].utime!=sort_wires[i-1].utime) current_num_days++;
+      }
+
+      var remaining_wires = holes.length - sort_wires.length;
+      var string_speed = day_info[day_info.length - 1].num_ave;
+      var remaining_work_days = remaining_wires/string_speed;
+      var num_holidays = 0;
+      var time0 = Date.parse(current_day);
+      var remaining_days=1;
+      for (j=0;; remaining_days++) {
+         var day = new Date(time0 + remaining_days*24*60*60*1000);
+         if (day.getDay()==0||day.getDay()==6)  { num_holidays++; continue; }
+         if (day.getMonth()==7 /*Aug*/&& day.getDate()==13)  { num_holidays++; continue; }
+         if (day.getMonth()==7 /*Aug*/&& day.getDate()==14)  { num_holidays++; continue; }
+         j++;
+         if (j>=remaining_work_days) break;
+      }
+      var last_day = new Date(Date.parse(current_day) + remaining_days*24*60*60*1000);
+      var status= { 
+         current_day: current_day, 
+         current_num_layers: current_num_layers,
+         current_num_sense:  current_num_sense, 
+         current_num_field:  current_num_field, 
+         current_num_days:   current_num_days,
+         remaining_wires: remaining_wires, 
+         string_speed: string_speed, 
+         remaining_work_days: remaining_work_days,
+         remaining_days: remaining_days,
+         num_holidays: num_holidays,
+         last_day: last_day,
+      };
+      console.log(status);
+      return status;
+   };
+
+   var svg_wires = d3.select("#menu_status #status").append("svg").attr({width:w, height:h});
+   svg_wires.selectAll("circle")
+   .data(holes)
+   .enter()
+   .append("circle")
+   .attr({
+      cx: function(d) { return d.x/diam*w*0.9 + w/2; },
+      cy: function(d) { return -d.y/diam*h*0.9 + h/2; },
+      r: function(d) { return 0.5; },
+      fill: "gray"
+   });
+
+   var read_xml = function(xmlRoot) {
+      var wires=[];
+      for (i=1; i<=39; i++) {
+         var layer = xmlRoot.getElementsByTagName("T_Data"+i);
+         var array = Array.prototype.slice.call(layer);
+         for (j=0; j<array.length; j++) {
+            var defined = array[j].getElementsByTagName("Density1")[0];
+            if (defined) {
+               wires.push({
+                  layerid: i, // 1-start
+                  dataid: parseInt(array[j].getElementsByTagName("DataID")[0].firstChild.nodeValue),
+                  wireid: parseInt(array[j].getElementsByTagName("WireID")[0].firstChild.nodeValue),  // 1-start
+                  tbase:  parseInt(array[j].getElementsByTagName("TBase")[0].firstChild.nodeValue),
+                  dens:   parseFloat(array[j].getElementsByTagName("Density1")[0].firstChild.nodeValue),
+                  date:   array[j].getElementsByTagName("Date1")[0].firstChild.nodeValue,
+                  utime:  parseInt(Date.parse(array[j].getElementsByTagName("Date1")[0].firstChild.nodeValue)),
+                  freq:   parseFloat(array[j].getElementsByTagName("Frq1")[0].firstChild.nodeValue),
+                  tens:   parseFloat(array[j].getElementsByTagName("Ten1")[0].firstChild.nodeValue)
+               });
+            }
+         }
+      }
+      return wires;
+   };
+
+   var sort_wire = function(wires) {
+
+      return wires.slice().sort(function(a,b) {
+         var a_utime = a.utime;
+         var a_tbase = a.tbase;
+         var a_layer = a.layerid;
+         var a_wireid = a.wireid;
+
+         var b_utime = b.utime;
+         var b_tbase = b.tbase;
+         var b_layer = b.layerid;
+         var b_wireid = b.wireid;
+
+         if (a_utime > b_utime) {
+            return 1;
+         } else if (a_utime < b_utime) {
+            return -1;
+         } else {
+            if (a_layer > b_layer) return 1;
+            if (a_layer < b_layer) return -1;
+            if (a_tbase < b_tbase) return 1;
+            if (a_tbase > b_tbase) return -1;
+            if (a_wireid > b_wireid) return 1;
+            if (a_wireid < b_wireid) return -1;
+            return 0;
+         }
+      });
+   };
+
+   var get_day_info = function(sort_wires) {
+      var i, j;
+      var day_info = [];
+      if (sort_wires.length==0) return day_info;
+
+      var num_sum=1;
+      var num_day=1;
+      var num_ave=1;
+      var num_sense=0;
+      var num_field=0;
+      var loading=0; // (kg)
+      if (sort_wires[0].tbase==50) num_sense++;
+      if (sort_wires[0].tbase==80) num_field++;
+      loading += sort_wires[0].tens*0.001;
+
+      for (i=1, j=1; i<sort_wires.length; i++) {
+         if (sort_wires[i].utime != sort_wires[i-1].utime || i==sort_wires.length-1) {
+            day_info[j-1] = {
+               days: j, 
+               utime: d3.time.format("%Y/%m/%d").parse(sort_wires[i-1].date), 
+               num_sum: num_sum, 
+               num_day: num_day, 
+               num_ave: num_ave, 
+               num_sense: num_sense, 
+               num_field: num_field, 
+               wire_tension_kg: loading
+            };
+            j++;
+            num_day=0;
+         }
+         num_sum++;
+         num_day++;
+         num_ave = num_sum/j;
+         if (sort_wires[i].tbase==50) num_sense++;
+         if (sort_wires[i].tbase==80) num_field++;
+         loading += sort_wires[i].tens*0.001;
+      }
+      console.log(day_info);
+      return day_info;
+   };
+
+
+   //var xml_name = "test.xml";
+   var xml_name = "./xml/COMETCDC.xml";
+
+   d3.xml(xml_name, "application/xml", function(error, xmlRoot) {
+
+      var wires = read_xml(xmlRoot);
+      var sort_wires = sort_wire(wires);
+      var day_info = get_day_info(sort_wires);
+      var status = get_status(sort_wires, day_info);
+
+      var xdomain =  day_info.map(function(d) { return d.days; });
+      var ydomain_sum = [0, d3.max(day_info, function(d) { return d.num_sum; })];
+      var ydomain_day = [0, d3.max(day_info, function(d) { return d.num_day; })];
+      var ydomain_ave = [0, d3.max(day_info, function(d) { return d.num_ave; })];
+      var frame_progress_sum = append_svg("#menu_progress #progress_sum", "days", "total # of wires",     xdomain, ydomain_sum, {xaxis_type: "roundBands"});
+      var frame_progress_day = append_svg("#menu_progress #progress_day", "days", "# of wires in a day",  xdomain, ydomain_day, {xaxis_type: "roundBands"});
+      var frame_progress_ave = append_svg("#menu_progress #progress_ave", "days", "ave# of wires per day",xdomain, ydomain_ave, {xaxis_type: "roundBands"});
+
+      $("#last_day").html("Finished on "+status.last_day.toLocaleDateString("ja-JP"));
+      makeBarChart(frame_progress_sum, day_info, "days", "num_sum", "steelblue", {label: [ {data: ["num_sum"]} ], options: {width: "30", height: "20"}} );
+      makeBarChart(frame_progress_day, day_info, "days", "num_day", "steelblue", {label: [ {data: ["num_day"]} ], options: {width: "30", height: "20"}} );
+      makeBarChart(frame_progress_ave, day_info, "days", "num_ave", "steelblue", {label: [ {data: [function(d) {return d.num_ave.toFixed(1);}]} ], options: {width: "40", height: "20"}});
+
+      var xdomain_tension = [0, d3.max(sort_wires, function (d) { return d.wireid; })];
+      var ydomain_tension = [0, d3.max(sort_wires, function (d) { return d.tens; })];
+      var frame_tension = append_svg("#menu_tension", "wire_id", "tension (g)", xdomain_tension, ydomain_tension, {xaxis_type: "linear"});
+      var xmin = d3.min(sort_wires, function (d) { return d.wireid; });
+      var xmax = d3.max(sort_wires, function (d) { return d.wireid; });
+      makeLine(frame_tension, "tension_limit_sense", [ { x:xmin, y: 45}, {x:xmax, y: 45} ]);
+      makeLine(frame_tension, "tension_limit_sense", [ { x:xmin, y: 55}, {x:xmax, y: 55} ]);
+      makeLine(frame_tension, "tension_limit_field", [ { x:xmin, y: 72}, {x:xmax, y: 72} ]);
+      makeLine(frame_tension, "tension_limit_field", [ { x:xmin, y: 88}, {x:xmax, y: 88} ]);
+      makeScatterPlot(frame_tension, sort_wires, "wireid", "tens", {
+         stroke: function(d) { return (d.tbase==80)?"#3874e3":"#ed5454"; }, 
+         fill:   function(d) { return (d.tbase==80)?"#bdd0f4":"#f8d7d7"; },
+         stroke_width: function(d) { return (d.tens<d.tbase*0.9 || d.tens>d.tbase*1.1)?"1px":"0px"; }
+      }, [
+         {label:"sense", fill:"red", ypos:"82"}, 
+         {label:"field", fill:"blue", ypos:"25"}
+      ], {
+         label: [ 
+            {data: ["date"] }, 
+            {data: ["layerid", "wireid"], separator: '-'}, 
+            {data: ["tens"], postfix:' g'} ], 
+            options: {width: "70", height: "50"}
+      });
+
+      plotWires(svg_wires, status, sort_wires);
+      plotTension(day_info);
+
+   });
+
+   var read_gauge_csv = function (csv) {
+      var i, j;
+      var v1_start;
+      var v2_start;
+      var v3_start;
+      var v4_start;
+      var data=[];
+      for (i=0, j=0; i<csv.length; i++) {
+
+         var v11 = csv[i]["10deg_1mm"];
+         var v12 = csv[i]["10deg_10um"];
+         var v21 = csv[i]["90deg_1mm"];
+         var v22 = csv[i]["90deg_10um"];
+         var v31 = csv[i]["180deg_1mm"];
+         var v32 = csv[i]["180deg_10um"];
+         var v41 = csv[i]["270deg_1mm"];
+         var v42 = csv[i]["270deg_10um"];
+         if ( !v11 || !v21 || !v31 || !v41) continue;
+         if ( !v12 || !v22 || !v32 || !v42) continue;
+
+         var v1= (parseFloat(v11)+parseFloat(v12))*1000; // mm -> um
+         var v2= (parseFloat(v21)+parseFloat(v22))*1000; // mm -> um
+         var v3= (parseFloat(v31)+parseFloat(v32))*1000; // mm -> um
+         var v4= (parseFloat(v41)+parseFloat(v42))*1000; // mm -> um
+         if (j==0) {
+            v1_start = v1;
+            v2_start = v2;
+            v3_start = v3;
+            v4_start = v4;
+         }
+
+         var d1 = v1 - v1_start;
+         var d2 = v2 - v2_start;
+         var d3 = v3 - v3_start;
+         var d4 = v4 - v4_start;
+
+         var utime = Date.parse(csv[i]["Date"] + ' ' + csv[i]["Time"]);
+         var date = csv[i]["Date"];
+
+         var time = csv[i]["Time"];
+         var temp = csv[i]["Temp"];
+
+         data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at10deg",  "disp_um": parseFloat(d1) };
+         data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at90deg",  "disp_um": parseFloat(d2) };
+         data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at180deg", "disp_um": parseFloat(d3) };
+         data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at270deg", "disp_um": parseFloat(d4) };
+
+      }
+      //console.log(data);
+      return data;
+   };
+
+   var gauge_csv_name ="./csv/dial_gauge.csv";
+
+   d3.csv(gauge_csv_name, function(error, csv) {
+      var i, j;
+
+      var gauge_data = read_gauge_csv(csv);
+      var xdomain_gauge = d3.extent(gauge_data, function(d) { return d.utime; });
+      var ydomain_gauge = d3.extent(gauge_data, function(d) { return d.disp_um; });
+      var frame_gauge = append_svg("#menu_gauge", "date", "displacement (um)", xdomain_gauge, ydomain_gauge, {xaxis_type: "time"});
+      var stroke_gauge = {at10deg:"#ed5454", at90deg:"#3874e3", at180deg:"#228b22", at270deg:"#ffa500" };
+      var fill_gauge   = {at10deg:"#f8d7d7", at90deg:"#bdd0f4", at180deg:"#9acd32", at270deg:"#ffead6" };
+
+      makeScatterPlot(frame_gauge, gauge_data, "utime", "disp_um", 
+                      { 
+                         fill: function(d) { return fill_gauge[d.location]; },
+                         stroke: function(d) { return stroke_gauge[d.location]; },
+                         stroke_width: "1px"
+                      },
+                      [
+                         {label:"10deg",  fill:'red',    ypos:"66"},
+                         {label:"90deg",  fill:'#3874e3',ypos:"83"},
+                         {label:"180deg", fill:'green',  ypos:"100"},
+                         {label:"270deg", fill:'orange', ypos:"117"}
+                      ],
+                      {label: [ {data: [ "date", "time", function(d) {return d.disp_um.toFixed(0);} ], separator:' ', postfix:' um'} ] , options: {width: "130", height: "20"}} );
+   });
+
+
+   var plotTension = function(day_info) {
+
+      var read_tensionbar_csv = function(csv) {
+         var i, j;
+         var data=[];
+         for (i=0, j=0; i<csv.length; i++) {
+
+            var d1 = csv[i]["Date"];
+            var d2 = csv[i]["Tension_kg"];
+            //console.log("d1 " + d1);
+            //console.log("d2 " + d2);
+            //if ( !d1 || !d2 || !isFinite(d1) ||  !isFinite(d2)) continue;
+
+            var utime = Date.parse(csv[i]["Date"]);
+            var tension_kg = parseFloat(csv[i]["Tension_kg"]);
+
+            data[j++] = { utime: utime, tension_kg: tension_kg };
+         }
+         //console.log(data);
+         return data;
+      };
+
+      var bar_csv_name ="./csv/tension_bar.csv";
+
+      var xdomain = d3.extent(day_info, function(d) { return d.utime; });
+      var labelA = function(d) { var a= new Date(d.utime); return a.getFullYear()+'/'+(a.getMonth()+1)+'/'+a.getDate(); };
+      var tipOption =  {width: "130", height: "20"};
+
+      d3.csv(bar_csv_name, function(error, csv) {
+         var i, j;
+
+         var bar_data = read_tensionbar_csv(csv);
+         //console.log(bar_data);
+         for (i=0, j=0; i<day_info.length; i++) {
+            day_info[i].bar_tension_kg = bar_data[j].tension_kg;
+            day_info[i].all_tension_kg = day_info[i].wire_tension_kg + bar_data[j].tension_kg;
+            if (day_info[i].utime < bar_data[j].utime) {
+               j++;
+            }
+         }
+
+         // TensionBar + Wire
+         var ydomain_all = [d3.min(day_info, function(d) { return d.all_tension_kg; })*0.9, d3.max(day_info, function(d) { return d.all_tension_kg; })*1.1];
+         var frame_all = append_svg("#menu_load_all", "date", "total loading (kg)", xdomain, ydomain_all, {xaxis_type: "time"});
+         makeScatterPlot(frame_all, day_info, "utime", "all_tension_kg", { fill: "#9966ff", stroke: "#6633cc", stroke_width: "1px", line_stroke: "#6633cc" }, [],
+                         { label: [ { data: [ labelA, function(d) { return d.all_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ], options: tipOption});
+
+                         // TensionBar
+                         var ydomain_bar = [d3.min(day_info, function(d) { return d.bar_tension_kg; })*0.9, d3.max(day_info, function(d) { return d.bar_tension_kg; })*1.1];
+                         //console.log("xdomain_bar " + xdomain_bar);
+                         //console.log("ydomain_bar " + ydomain_bar);
+                         var frame_bar = append_svg("#menu_load_bar", "date", "loading of tension bars (kg)", xdomain, ydomain_bar, {xaxis_type: "time"});
+                         makeScatterPlot(frame_bar, day_info, "utime", "bar_tension_kg", { fill: "green", stroke: "blue", stroke_width: "1px", line_stroke: "blue"}, [],
+                                         { label: [ { data: [ labelA, function(d) { return d.bar_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ], options: tipOption});
+      });
+
+      // Wire
+      var ydomain_wire = [0, day_info[day_info.length-1].wire_tension_kg];
+      var frame_wire = append_svg("#menu_load_wire", "date", "loading of wires (kg)", xdomain, ydomain_wire, {xaxis_type: "time"});
+      makeScatterPlot(frame_wire, day_info, "utime", "wire_tension_kg", { stroke: "#ff1493", fill: "#ff69b4", stroke_width: "1px", line_stroke: "#ff1493" },[],
+                      { label: [ { data: [ labelA, function(d) { return d.wire_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ], options: tipOption});
+
+   };
+});
