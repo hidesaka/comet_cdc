@@ -4,7 +4,7 @@ $(function () {
       // setup s3
       var awsRegion = "us-east-1";
       var cognitoParams = {
-         IdentityPoolId: "us-east-1:03c415f9-4328-419d-bade-f099e836ef6a"
+         IdentityPoolId: "us-east-1:435dfdc9-d483-4f5e-8f8b-27e3569ad9af"
       };
 
       AWS.config.region = awsRegion;
@@ -819,6 +819,7 @@ $(function () {
          return data;
       };
 
+      /*
       s3.listObjects(function(err,data) {
             console.log("=== debug ===");
             if (err=== null) {
@@ -830,6 +831,7 @@ $(function () {
                });
             }
       });
+      */
 
       s3.getObject(
          {
