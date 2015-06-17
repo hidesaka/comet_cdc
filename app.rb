@@ -42,19 +42,19 @@ post '/xml_upload' do
       
       upload(params[:file][:tempfile].read, "xml/#{dir_name}/COMETCDC.xml")
 
-#      # generate daily/dir_name/data.json
-#      #write_entry(dir_name)
-#      data_json = get_info(params[:file][:tempfile])
-#      upload(data_json, "daily/#{dir_name}/data.json")
-#      upload(data_json, "daily/current/data.json")
-#
-#      # make link of current dir_name
-#      #FileUtils.rm("public/daily/current") if File.exists?("public/daily/current")
-#      #FileUtils.ln_s("#{dir_name}","public/daily/current")
-#
-#      # generate stats/stats.json
-#      stats_json = get_stats
-#      upload(stats_json, "stats/stats.json")
+      # generate daily/dir_name/data.json
+      #write_entry(dir_name)
+      data_json = get_info(params[:file][:tempfile])
+      upload(data_json, "daily/#{dir_name}/data.json")
+      upload(data_json, "daily/current/data.json")
+
+      # make link of current dir_name
+      #FileUtils.rm("public/daily/current") if File.exists?("public/daily/current")
+      #FileUtils.ln_s("#{dir_name}","public/daily/current")
+
+      # generate stats/stats.json
+      stats_json = get_stats
+      upload(stats_json, "stats/stats.json")
       
       redirect '/'
    end
