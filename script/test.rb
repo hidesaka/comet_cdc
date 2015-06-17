@@ -112,7 +112,7 @@ def get_last_date(now_utime_sec, num_wires, num_ave)
 end
 
 
-def write_stats
+def get_stats
    stats=[]
    prev_size=0
    days=0
@@ -140,9 +140,13 @@ def write_stats
       wire_tension_kg: wire_tension_kg, last_date: last_date, last_utime: last_utime}
       stats.push(stat)
    end
-   File.open(STAT_FILE,"w") { |f| JSON.dump(stats, f) }
+   stats
 end
 
+def write_stats
+   stats = get_stats
+   File.open(STAT_FILE,"w") { |f| JSON.dump(stats, f) }
+end
 
 p ARGV
 if (ARGV[0]=="daily") then
