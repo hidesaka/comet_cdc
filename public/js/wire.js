@@ -799,43 +799,9 @@ $(function () {
          return data;
       };
 
-      var read_from_s3 = function(path_name) {
-         var awsRegion = "us-east-1";
-         var cognitoParams = {
-            IdentityPoolId: "us-east-1:03c415f9-4328-419d-bade-f099e836ef6a"
-         };
 
-         AWS.config.region = awsRegion;
-         AWS.config.credentials = new AWS.CognitoIdentityCredentials(cognitoParams);
-         AWS.config.credentials.get(function(err) {
-               if (!err) {
-                  console.log("Cognito Identity Id: " + AWS.config.credentials.identityId);
-               }
-         });
-
-         var s3BucketName = "comet-cdc";
-         var s3RegionName = "ap-northeast-1"
-         var s3 = new AWS.S3({params: {Bucket: s3BucketName, Region: s3RegionName}});
-         var params = {Bucket: s3BucketName, Key: path_name};
-         return s3.getSignedUrl('getObject', params);
-         /*
-         s3.listObjects(function(err,data) {
-               if (err=== null) {
-                  jQuery.each(data.Contents, function(index, obj) {
-                        var params = {Bucket: s3BucketName, Key: obj.Key};
-                        var url = s3.getSignedUrl('getObject', params);
-                        console.log("obj.Key " + obj.Key);
-                        console.log("url " + url);
-                  });
-               }
-         });
-         */
-      };
-
-      //var gauge_csv_name ="./csv/dial_gauge.csv";
-      var gauge_csv_name = read_from_s3("csv/dial_gauge.csv");
-
-      d3.csv(gauge_csv_name, function(error, csv) {
+      var gauge_csv_params = {Bucket: 'comet-cdc', Key: 'csv/dial_gauge.csv'};
+      s3.getObject(gauge_csv_params, function(error, csv) {
             var i, j;
 
             var gauge_data = read_gauge_csv(csv);
