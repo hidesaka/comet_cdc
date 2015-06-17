@@ -32,7 +32,7 @@ post '/xml_upload' do
       dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
 
       # upload xml
-      upload_xml(body, dir_name)
+      #upload_xml(body, dir_name)
 
       # generate daily/dir_name/data.json
       upload_data(body, dir_name)
