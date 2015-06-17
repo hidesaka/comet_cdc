@@ -831,14 +831,16 @@ $(function () {
                });
             }
       });
-      */
-
       s3.getObject(
          {
             Bucket: s3BucketName,
             Key: 'csv/dial_gauge.csv',
             ResponseContentType: 'text/plain'
-         }, function(error, csv) {
+      */
+
+     var params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
+     var url = s3.getSignedUrl('getObject', params);
+     d3.csv(url, function(error, csv) {
             var i, j;
 
             var gauge_data = read_gauge_csv(csv);
