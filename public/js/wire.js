@@ -629,239 +629,273 @@ $(function () {
             return data;
          };
 
-         var bar_csv_name ="./csv/tension_bar.csv";
+         //var bar_csv_name ="./csv/tension_bar.csv";
 
-         d3.csv(bar_csv_name, function(error, csv) {
-               var i, j;
+         s3.listObjects(function(err,data) {
+               //console.log("=== debug ===");
+               if (err=== null) {
+                  jQuery.each(data.Contents, function(index, obj) {
+                        var params = {Bucket: s3BucketName, Key: obj.Key};
+                        var url = s3.getSignedUrl('getObject', params);
+                        if (obj.Key!="csv/tension_bar.csv") return true;
 
-               var bar_data = read_tensionbar_csv(csv);
-               for (i=0, j=0; i<dailies.length; i++) {
-                  dailies[i].bar_tension_kg = bar_data[j].tension_kg;
-                  dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j].tension_kg;
-                  if (dailies[i].utime < bar_data[j].utime) {
-                     j++;
-                  }
+                        d3.csv(url, function(error, csv) {
+                              var i, j;
+
+                              var bar_data = read_tensionbar_csv(csv);
+                              for (i=0, j=0; i<dailies.length; i++) {
+                                 dailies[i].bar_tension_kg = bar_data[j].tension_kg;
+                                 dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j].tension_kg;
+                                 if (dailies[i].utime < bar_data[j].utime) {
+                                    j++;
+                                 }
+                              }
+
+                              // TensionBar + Wire
+                              var ydomain_all = [d3.min(dailies, function(d) { return d.all_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.all_tension_kg; })*1.1];
+                              var svg_all = append_svg("#menu_load_all");
+                              var frame_all = make_frame(svg_all, "date", "total loading (kg)", xdomain, ydomain_all, {xaxis_type: "time"});
+                              makeScatterPlot(frame_all, dailies, "utime", "all_tension_kg", 
+                                 {fill: "#9966ff", stroke: "#6633cc", stroke_width: "1px", line_stroke: "#6633cc" }, [],
+                                 { label: [ { data: [ labelA, function(d) { return d.all_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
+
+                              // TensionBar
+                              var ydomain_bar = [d3.min(dailies, function(d) { return d.bar_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.bar_tension_kg; })*1.1];
+                              //console.log("xdomain_bar " + xdomain_bar);
+                              //console.log("ydomain_bar " + ydomain_bar);
+                              var svg_bar = append_svg("#menu_load_bar");
+                              var frame_bar = make_frame(svg_bar, "date", "loading of tension bars (kg)", xdomain, ydomain_bar, {xaxis_type: "time"});
+                              makeScatterPlot(frame_bar, dailies, "utime", "bar_tension_kg", { fill: "#0081B8", stroke: "blue", stroke_width: "1px", line_stroke: "blue"}, [],
+                                 { label: [ { data: [ labelA, function(d) { return d.bar_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
+                        });
+                  });
+               }
+         });
+
+         var svg_wires = d3.select("#menu_status #status").append("svg").attr({width:w, height:h});
+         svg_wires.selectAll("circle")
+         .data(holes)
+         .enter()
+         .append("circle")
+         .attr({
+               cx: function(d) { return d.x/diam*w*0.9 + w/2; },
+               cy: function(d) { return -d.y/diam*h*0.9 + h/2; },
+               r: function(d) { return 0.5; },
+               fill: "gray"
+         });
+
+         var plotLayerDays = function(data) {
+            //{"dataID":2,"layerID":37,"wireID":2,"tBase":"80","density":3.359e-09,"date":"2015/06/12","freq":49.89,"tens":78.6}
+            var layerData = _.groupBy(data, function(d) {
+                  return parseInt(d.layerID);
+            });
+            console.log(layerData);
+            var layerNumbers = _.keys(layerData);
+            var xmin = _.min(layerNumbers, _.identity);
+            var xmax = _.max(layerNumbers, _.identity);
+            xmin = parseInt(xmin);
+            xmax = parseInt(xmax);
+            //console.log("layerNumbers "+ layerNumbers);
+            //console.log("xmin "+ xmin);
+            //console.log("xmax "+ xmax);
+            var mydata = _.range(1,40).map(function(d) {
+                  return {layerID: d, num_days: 0};
+            });
+            //console.log(mydata);
+            _.each(layerData, function(v, layerID) {
+                  days = _.groupBy(v, function(d2) {
+                        return d2.date;
+                  });
+                  //console.log(layerID);
+                  //console.log(days);
+                  //console.log(mydata[layerID-1]);
+                  var num_days = _.keys(days).length;
+                  //console.log(_.keys(days).length);
+                  mydata[layerID-1].layerID = layerID;
+                  mydata[layerID-1].num_days = num_days;
+            });
+            //console.log(JSON.stringify(mydata));
+            var svg = append_svg("#menu_progress #layer_days");
+            //console.log("xdomain->");
+            //var xdomain = _.range(xmin,xmax+1);
+            var xdomain = _.range(0,40);
+            //console.log(xmax+1);
+            //console.log(xdomain);
+            //console.log(mydata);
+            var ydomain = [0, 10];
+            var xaxis_tickValues = _.range(0,40,5);
+            var frame = make_frame(svg, "layer_id", "days", xdomain, ydomain, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues});
+            makeBarChart(frame, mydata, "layerID","num_days", "#A8BE62", {label: [ 
+                     {data: ["layerID"], prefix: 'layer_id '},
+                     {data: ["num_days"], postfix: ' days'}
+            ]});
+         };
+
+         //var xml_name = "test.xml";
+         //var xml_name = "./xml/COMETCDC.xml";
+         //var json_name = "./stats/stats.json";
+         //{"date":"2015/05/26","utime":1432566000000,"days":1,"num_sum":11,"num_sense":0,"num_field":11,"num_day":11,"num_ave":11.0,"num_bad":10,"wire_tension_kg":0.9997800000000001,"last_date":"2022/03/31","last_utime":1648652400000}
+
+         s3.listObjects(function(err,data) {
+               //console.log("=== debug ===");
+               if (err=== null) {
+                  jQuery.each(data.Contents, function(index, obj) {
+                        var params = {Bucket: s3BucketName, Key: obj.Key};
+                        var url = s3.getSignedUrl('getObject', params);
+                        //console.log("obj.Key " + obj.Key);
+                        //console.log("url " + url);
+                        if (obj.Key!="stats/stats.json") return true;
+
+                        d3.json(url, function(error, dailies) {
+
+                              //console.log(json);
+
+                              var xdomain =  _.map(dailies, function(d) { return d.days; });
+                              var ydomain_sum = [0, d3.max(dailies, function(d) { return d.num_sum; })];
+                              var ydomain_day = [0, d3.max(dailies, function(d) { return d.num_day; })];
+                              var ydomain_ave = [0, d3.max(dailies, function(d) { return d.num_ave; })];
+                              var ydomain_bad = [0, d3.max(dailies, function(d) { return d.num_bad; })];
+                              var svg_progress_sum = append_svg("#menu_progress #progress_sum");
+                              var svg_progress_day = append_svg("#menu_progress #progress_day");
+                              var svg_progress_ave = append_svg("#menu_progress #progress_ave");
+                              var svg_progress_bad = append_svg("#menu_progress #bad_wires");
+
+                              var frame_progress_sum = make_frame(svg_progress_sum, "days", "total # of stringed wires",     xdomain, ydomain_sum, {xaxis_type: "roundBands"});
+                              var frame_progress_day = make_frame(svg_progress_day, "days", "# of stringed wires",  xdomain, ydomain_day, {xaxis_type: "roundBands"});
+                              var frame_progress_ave = make_frame(svg_progress_ave, "days", "ave # of stringed wires",xdomain, ydomain_ave, {xaxis_type: "roundBands"});
+                              var frame_progress_bad = make_frame(svg_progress_bad, "days", "# of wires to be re-stringed", xdomain, ydomain_bad, {xaxis_type: "roundBands"});
+
+                              $("#last_day").html("Finished on "+new Date(_.last(dailies).last_utime).toLocaleDateString("ja-JP"));
+                              makeBarChart(frame_progress_sum, dailies, "days","num_sum", "#D70071", {label: [ {data: ["num_sum"]} ]});
+                              makeBarChart(frame_progress_ave, dailies, "days","num_ave", "#91D48C", {label: [ {data: [function(d) {return d.num_ave.toFixed(1);}]} ]});
+                              makeBarChart(frame_progress_day, dailies, "days","num_day", "steelblue", {label: [ {data: ["num_day"]} ]});
+                              makeBarChart(frame_progress_bad, dailies, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]});
+
+                              plotLoad(dailies);
+
+
+                              s3.listObjects(function(err,data) {
+                                    //console.log("=== debug ===");
+                                    if (err=== null) {
+                                       jQuery.each(data.Contents, function(index, obj) {
+                                             var params = {Bucket: s3BucketName, Key: obj.Key};
+                                             var url = s3.getSignedUrl('getObject', params);
+                                             if (obj.Key!="daily/current/data.json") return true;
+
+                                             //var json_name = "./daily/current/data.json";
+                                             //{"dataID":2,"layerID":37,"wireID":2,"tBase":"80","density":3.359e-09,"date":"2015/06/12","freq":49.89,"tens":78.6}
+                                             d3.json(url, function(error, data) {
+                                                   plotWires(svg_wires, data, dailies[dailies.length-1]);
+                                                   plotTension(data);
+                                                   plotTensionHistogram(data,"sense");
+                                                   plotTensionHistogram(data,"field");
+                                                   plotLayerDays(data);
+                                             });
+                                       });
+                                    }
+                              });
+                        });
+                  });
+               }
+         });
+
+
+         var read_gauge_csv = function (csv) {
+            var i, j;
+            var v1_start;
+            var v2_start;
+            var v3_start;
+            var v4_start;
+            var data=[];
+            for (i=0, j=0; i<csv.length; i++) {
+
+               var v11 = csv[i]["10deg_1mm"];
+               var v12 = csv[i]["10deg_10um"];
+               var v21 = csv[i]["90deg_1mm"];
+               var v22 = csv[i]["90deg_10um"];
+               var v31 = csv[i]["180deg_1mm"];
+               var v32 = csv[i]["180deg_10um"];
+               var v41 = csv[i]["270deg_1mm"];
+               var v42 = csv[i]["270deg_10um"];
+               if ( !v11 || !v21 || !v31 || !v41) continue;
+               if ( !v12 || !v22 || !v32 || !v42) continue;
+
+               var v1= (parseFloat(v11)+parseFloat(v12))*1000; // mm -> um
+               var v2= (parseFloat(v21)+parseFloat(v22))*1000; // mm -> um
+               var v3= (parseFloat(v31)+parseFloat(v32))*1000; // mm -> um
+               var v4= (parseFloat(v41)+parseFloat(v42))*1000; // mm -> um
+               if (j==0) {
+                  v1_start = v1;
+                  v2_start = v2;
+                  v3_start = v3;
+                  v4_start = v4;
                }
 
-               // TensionBar + Wire
-               var ydomain_all = [d3.min(dailies, function(d) { return d.all_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.all_tension_kg; })*1.1];
-               var svg_all = append_svg("#menu_load_all");
-               var frame_all = make_frame(svg_all, "date", "total loading (kg)", xdomain, ydomain_all, {xaxis_type: "time"});
-               makeScatterPlot(frame_all, dailies, "utime", "all_tension_kg", 
-                  {fill: "#9966ff", stroke: "#6633cc", stroke_width: "1px", line_stroke: "#6633cc" }, [],
-                  { label: [ { data: [ labelA, function(d) { return d.all_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
+               var d1 = v1 - v1_start;
+               var d2 = v2 - v2_start;
+               var d3 = v3 - v3_start;
+               var d4 = v4 - v4_start;
 
-               // TensionBar
-               var ydomain_bar = [d3.min(dailies, function(d) { return d.bar_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.bar_tension_kg; })*1.1];
-               //console.log("xdomain_bar " + xdomain_bar);
-               //console.log("ydomain_bar " + ydomain_bar);
-               var svg_bar = append_svg("#menu_load_bar");
-               var frame_bar = make_frame(svg_bar, "date", "loading of tension bars (kg)", xdomain, ydomain_bar, {xaxis_type: "time"});
-               makeScatterPlot(frame_bar, dailies, "utime", "bar_tension_kg", { fill: "#0081B8", stroke: "blue", stroke_width: "1px", line_stroke: "blue"}, [],
-                  { label: [ { data: [ labelA, function(d) { return d.bar_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
-         });
+               var utime = Date.parse(csv[i]["Date"] + ' ' + csv[i]["Time"]);
+               //console.log("HOGE utime => " + utime);
+               var date = csv[i]["Date"];
 
+               var time = csv[i]["Time"];
+               var temp = csv[i]["Temp"];
 
-      };
+               data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at10deg",  "disp_um": parseFloat(d1) };
+               data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at90deg",  "disp_um": parseFloat(d2) };
+               data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at180deg", "disp_um": parseFloat(d3) };
+               data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at270deg", "disp_um": parseFloat(d4) };
 
-      var svg_wires = d3.select("#menu_status #status").append("svg").attr({width:w, height:h});
-      svg_wires.selectAll("circle")
-      .data(holes)
-      .enter()
-      .append("circle")
-      .attr({
-            cx: function(d) { return d.x/diam*w*0.9 + w/2; },
-            cy: function(d) { return -d.y/diam*h*0.9 + h/2; },
-            r: function(d) { return 0.5; },
-            fill: "gray"
-      });
-
-      var plotLayerDays = function(data) {
-         //{"dataID":2,"layerID":37,"wireID":2,"tBase":"80","density":3.359e-09,"date":"2015/06/12","freq":49.89,"tens":78.6}
-         var layerData = _.groupBy(data, function(d) {
-               return parseInt(d.layerID);
-         });
-         console.log(layerData);
-         var layerNumbers = _.keys(layerData);
-         var xmin = _.min(layerNumbers, _.identity);
-         var xmax = _.max(layerNumbers, _.identity);
-         xmin = parseInt(xmin);
-         xmax = parseInt(xmax);
-         //console.log("layerNumbers "+ layerNumbers);
-         //console.log("xmin "+ xmin);
-         //console.log("xmax "+ xmax);
-         var mydata = _.range(1,40).map(function(d) {
-               return {layerID: d, num_days: 0};
-         });
-         //console.log(mydata);
-         _.each(layerData, function(v, layerID) {
-               days = _.groupBy(v, function(d2) {
-                     return d2.date;
-               });
-               //console.log(layerID);
-               //console.log(days);
-               //console.log(mydata[layerID-1]);
-               var num_days = _.keys(days).length;
-               //console.log(_.keys(days).length);
-               mydata[layerID-1].layerID = layerID;
-               mydata[layerID-1].num_days = num_days;
-         });
-         //console.log(JSON.stringify(mydata));
-         var svg = append_svg("#menu_progress #layer_days");
-         //console.log("xdomain->");
-         //var xdomain = _.range(xmin,xmax+1);
-         var xdomain = _.range(0,40);
-         //console.log(xmax+1);
-         //console.log(xdomain);
-         //console.log(mydata);
-         var ydomain = [0, 10];
-         var xaxis_tickValues = _.range(0,40,5);
-         var frame = make_frame(svg, "layer_id", "days", xdomain, ydomain, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues});
-         makeBarChart(frame, mydata, "layerID","num_days", "#A8BE62", {label: [ 
-                  {data: ["layerID"], prefix: 'layer_id '},
-                  {data: ["num_days"], postfix: ' days'}
-         ]});
-      };
-
-      //var xml_name = "test.xml";
-      //var xml_name = "./xml/COMETCDC.xml";
-      var json_name = "./stats/stats.json";
-      //{"date":"2015/05/26","utime":1432566000000,"days":1,"num_sum":11,"num_sense":0,"num_field":11,"num_day":11,"num_ave":11.0,"num_bad":10,"wire_tension_kg":0.9997800000000001,"last_date":"2022/03/31","last_utime":1648652400000}
-      d3.json(json_name, function(error, dailies) {
-
-            //console.log(json);
-
-            var xdomain =  _.map(dailies, function(d) { return d.days; });
-            var ydomain_sum = [0, d3.max(dailies, function(d) { return d.num_sum; })];
-            var ydomain_day = [0, d3.max(dailies, function(d) { return d.num_day; })];
-            var ydomain_ave = [0, d3.max(dailies, function(d) { return d.num_ave; })];
-            var ydomain_bad = [0, d3.max(dailies, function(d) { return d.num_bad; })];
-            var svg_progress_sum = append_svg("#menu_progress #progress_sum");
-            var svg_progress_day = append_svg("#menu_progress #progress_day");
-            var svg_progress_ave = append_svg("#menu_progress #progress_ave");
-            var svg_progress_bad = append_svg("#menu_progress #bad_wires");
-
-            var frame_progress_sum = make_frame(svg_progress_sum, "days", "total # of stringed wires",     xdomain, ydomain_sum, {xaxis_type: "roundBands"});
-            var frame_progress_day = make_frame(svg_progress_day, "days", "# of stringed wires",  xdomain, ydomain_day, {xaxis_type: "roundBands"});
-            var frame_progress_ave = make_frame(svg_progress_ave, "days", "ave # of stringed wires",xdomain, ydomain_ave, {xaxis_type: "roundBands"});
-            var frame_progress_bad = make_frame(svg_progress_bad, "days", "# of wires to be re-stringed", xdomain, ydomain_bad, {xaxis_type: "roundBands"});
-
-            $("#last_day").html("Finished on "+new Date(_.last(dailies).last_utime).toLocaleDateString("ja-JP"));
-            makeBarChart(frame_progress_sum, dailies, "days","num_sum", "#D70071", {label: [ {data: ["num_sum"]} ]});
-            makeBarChart(frame_progress_ave, dailies, "days","num_ave", "#91D48C", {label: [ {data: [function(d) {return d.num_ave.toFixed(1);}]} ]});
-            makeBarChart(frame_progress_day, dailies, "days","num_day", "steelblue", {label: [ {data: ["num_day"]} ]});
-            makeBarChart(frame_progress_bad, dailies, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]});
-
-            plotLoad(dailies);
-
-            var json_name = "./daily/current/data.json";
-            //{"dataID":2,"layerID":37,"wireID":2,"tBase":"80","density":3.359e-09,"date":"2015/06/12","freq":49.89,"tens":78.6}
-            d3.json(json_name, function(error, data) {
-                  plotWires(svg_wires, data, dailies[dailies.length-1]);
-                  plotTension(data);
-                  plotTensionHistogram(data,"sense");
-                  plotTensionHistogram(data,"field");
-                  plotLayerDays(data);
-            });
-      });
-
-
-      var read_gauge_csv = function (csv) {
-         var i, j;
-         var v1_start;
-         var v2_start;
-         var v3_start;
-         var v4_start;
-         var data=[];
-         for (i=0, j=0; i<csv.length; i++) {
-
-            var v11 = csv[i]["10deg_1mm"];
-            var v12 = csv[i]["10deg_10um"];
-            var v21 = csv[i]["90deg_1mm"];
-            var v22 = csv[i]["90deg_10um"];
-            var v31 = csv[i]["180deg_1mm"];
-            var v32 = csv[i]["180deg_10um"];
-            var v41 = csv[i]["270deg_1mm"];
-            var v42 = csv[i]["270deg_10um"];
-            if ( !v11 || !v21 || !v31 || !v41) continue;
-            if ( !v12 || !v22 || !v32 || !v42) continue;
-
-            var v1= (parseFloat(v11)+parseFloat(v12))*1000; // mm -> um
-            var v2= (parseFloat(v21)+parseFloat(v22))*1000; // mm -> um
-            var v3= (parseFloat(v31)+parseFloat(v32))*1000; // mm -> um
-            var v4= (parseFloat(v41)+parseFloat(v42))*1000; // mm -> um
-            if (j==0) {
-               v1_start = v1;
-               v2_start = v2;
-               v3_start = v3;
-               v4_start = v4;
             }
+            //console.log(data);
+            return data;
+         };
 
-            var d1 = v1 - v1_start;
-            var d2 = v2 - v2_start;
-            var d3 = v3 - v3_start;
-            var d4 = v4 - v4_start;
+         s3.listObjects(function(err,data) {
+               //console.log("=== debug ===");
+               if (err=== null) {
+                  jQuery.each(data.Contents, function(index, obj) {
+                        var params = {Bucket: s3BucketName, Key: obj.Key};
+                        var url = s3.getSignedUrl('getObject', params);
+                        //console.log("obj.Key " + obj.Key);
+                        //console.log("url " + url);
+                        if (obj.Key!="csv/dial_gauge.csv") return true;
 
-            var utime = Date.parse(csv[i]["Date"] + ' ' + csv[i]["Time"]);
-            //console.log("HOGE utime => " + utime);
-            var date = csv[i]["Date"];
+                        d3.csv(url, function(error, csv) {
+                              var i, j;
 
-            var time = csv[i]["Time"];
-            var temp = csv[i]["Temp"];
+                              var gauge_data = read_gauge_csv(csv);
+                              //console.log("csv");
+                              //console.log(csv);
+                              //console.log("gauge_data");
+                              //console.log(gauge_data);
+                              //gauge_data = _.take(gauge_data, 1);
+                              var xdomain_gauge = d3.extent(gauge_data, function(d) { return d.utime; });
+                              var ydomain_gauge = d3.extent(gauge_data, function(d) { return d.disp_um; });
+                              //xdomain_gauge = [1432610000000, 1432612000000];
+                              //ydomain_gauge = [-10, 10];
+                              var svg_gauge = append_svg("#menu_gauge");
+                              var frame_gauge = make_frame(svg_gauge, "date", "displacement (um)", xdomain_gauge, ydomain_gauge, {xaxis_type: "time"});
+                              var stroke_gauge = {at10deg:"#ed5454", at90deg:"#3874e3", at180deg:"#228b22", at270deg:"#ffa500" };
+                              var fill_gauge   = {at10deg:"#f8d7d7", at90deg:"#bdd0f4", at180deg:"#9acd32", at270deg:"#ffead6" };
 
-            data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at10deg",  "disp_um": parseFloat(d1) };
-            data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at90deg",  "disp_um": parseFloat(d2) };
-            data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at180deg", "disp_um": parseFloat(d3) };
-            data[j++] = { "utime": utime, "date":  date, "time":  time, "temp":  temp, "location": "at270deg", "disp_um": parseFloat(d4) };
-
-         }
-         //console.log(data);
-         return data;
-      };
-
-      s3.listObjects(function(err,data) {
-            console.log("=== debug ===");
-            if (err=== null) {
-               jQuery.each(data.Contents, function(index, obj) {
-                     var params = {Bucket: s3BucketName, Key: obj.Key};
-                     var url = s3.getSignedUrl('getObject', params);
-                     console.log("obj.Key " + obj.Key);
-                     console.log("url " + url);
-                     if (obj.Key!="csv/dial_gauge.csv") return true;
-
-                     d3.csv(url, function(error, csv) {
-                           var i, j;
-
-                           var gauge_data = read_gauge_csv(csv);
-                           console.log("csv");
-                           console.log(csv);
-                           console.log("gauge_data");
-                           console.log(gauge_data);
-                           //gauge_data = _.take(gauge_data, 1);
-                           var xdomain_gauge = d3.extent(gauge_data, function(d) { return d.utime; });
-                           var ydomain_gauge = d3.extent(gauge_data, function(d) { return d.disp_um; });
-                           //xdomain_gauge = [1432610000000, 1432612000000];
-                           //ydomain_gauge = [-10, 10];
-                           var svg_gauge = append_svg("#menu_gauge");
-                           var frame_gauge = make_frame(svg_gauge, "date", "displacement (um)", xdomain_gauge, ydomain_gauge, {xaxis_type: "time"});
-                           var stroke_gauge = {at10deg:"#ed5454", at90deg:"#3874e3", at180deg:"#228b22", at270deg:"#ffa500" };
-                           var fill_gauge   = {at10deg:"#f8d7d7", at90deg:"#bdd0f4", at180deg:"#9acd32", at270deg:"#ffead6" };
-
-                           makeScatterPlot(frame_gauge, gauge_data, "utime", "disp_um", 
-                              { 
-                                 fill: function(d) { return fill_gauge[d.location]; },
-                                 stroke: function(d) { return stroke_gauge[d.location]; },
-                                 stroke_width: "1px"
-                              },
-                              [
-                                 {label:"10deg",  stroke:'#ed5454', fill: "#f8d7d7", ypos:"66" },
-                                 {label:"90deg",  stroke:'#3874e3', fill: "#bdd0f4", ypos:"83" },
-                                 {label:"180deg", stroke:'#228b22', fill: "#9acd32", ypos:"100"},
-                                 {label:"270deg", stroke:'#ffa500', fill: "#ffead6", ypos:"117"}
-                              ],
-                              {label: [ {data: [ "date", "time", function(d) {return d.disp_um.toFixed(0);} ], separator:' ', postfix:' um'} ]});
-                     });
-               });
-            }
-      });
-});
+                              makeScatterPlot(frame_gauge, gauge_data, "utime", "disp_um", 
+                                 { 
+                                    fill: function(d) { return fill_gauge[d.location]; },
+                                    stroke: function(d) { return stroke_gauge[d.location]; },
+                                    stroke_width: "1px"
+                                 },
+                                 [
+                                    {label:"10deg",  stroke:'#ed5454', fill: "#f8d7d7", ypos:"66" },
+                                    {label:"90deg",  stroke:'#3874e3', fill: "#bdd0f4", ypos:"83" },
+                                    {label:"180deg", stroke:'#228b22', fill: "#9acd32", ypos:"100"},
+                                    {label:"270deg", stroke:'#ffa500', fill: "#ffead6", ypos:"117"}
+                                 ],
+                                 {label: [ {data: [ "date", "time", function(d) {return d.disp_um.toFixed(0);} ], separator:' ', postfix:' um'} ]});
+                        });
+                  });
+               }
+         });
+   });
