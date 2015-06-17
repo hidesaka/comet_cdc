@@ -77,8 +77,10 @@ end
 
 get '/xml_list' do 
    msg=[]
-   get_entries do |key|
-      msg.push "key #{key}<br/>"
-   end
+   msg.push "hoge<br/>"
+   msg.push "foo<br/>"
+   #get_entries do |key|
+   #   msg.push "key #{key}<br/>"
+   #end
    msg.join()
 end
