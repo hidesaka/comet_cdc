@@ -12,16 +12,9 @@ creds = JSON.load(File.read("secrets.json"))
 Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
 Aws.config[:region] = "ap-northeast-1"
 
-def upload (body, dst_fname)
-#   file_open = File.open(src_fname)
+def upload (body, key)
    s3 = Aws::S3::Client.new
-   #resp = s3.list_buckets
-   #puts resp.buckets.map(&:name)
-   s3.put_object(
-      bucket: "comet-cdc",
-      body: body,
-      key: dst_fname
-   )
+   s3.put_object(bucket: "comet-cdc", body: body, key: key)
 end
 
 get '/' do 
@@ -30,30 +23,21 @@ end
 
 post '/xml_upload' do 
    if params[:file]
+      path = params[:file][:filename]
+      basename = File.basename(path)
+      body = params[:file][:tempfile].read
 
       today=Time.now
       dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
 
-      #save_path = "public/xml/#{dir_name}"
-      #FileUtils.mkdir(save_path) unless File.exists?(save_path)
-      
-      #File.open("#{save_path}/#{params[:file][:filename]}", "w") do |f|
-      #   f.write params[:file][:tempfile].read
-      #end
-      
-      upload(params[:file][:tempfile].read, "xml/#{dir_name}/COMETCDC.xml")
+      # xml
+      upload(body, "xml/#{dir_name}/COMETCDC.xml")
 
       # generate daily/dir_name/data.json
-      #write_entry(dir_name)
-      data = get_info(params[:file][:tempfile])
+      data = get_info(path)
       data_json = JSON.generate(data)
-      #upload("this is test", "daily/#{dir_name}/data.json")
       upload(data_json, "daily/#{dir_name}/data.json")
       upload(data_json, "daily/current/data.json")
-
-      # make link of current dir_name
-      #FileUtils.rm("public/daily/current") if File.exists?("public/daily/current")
-      #FileUtils.ln_s("#{dir_name}","public/daily/current")
 
       # generate stats/stats.json
       stats = get_stats
@@ -66,10 +50,10 @@ end
 
 post '/csv_upload' do 
    if params[:file]
-      #File.open("public/csv/#{params[:file][:filename]}", "w") do |f|
-      #   f.write params[:file][:tempfile].read
-      #end
-      upload(params[:file][:tempfile], "csv/#{params[:file][:filename]}")
+      path = params[:file][:filename]
+      basename = File.basename(path)
+      body = params[:file][:tempfile].read
+      upload(body, "csv/#{basename}")
       redirect '/'
    end
 end
