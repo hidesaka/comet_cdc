@@ -840,6 +840,8 @@ $(function () {
 
      var params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
      var url = s3.getSignedUrl('getObject', params);
+     console.log("url");
+     console.log(url);
      d3.csv(url, function(error, csv) {
             var i, j;
 
