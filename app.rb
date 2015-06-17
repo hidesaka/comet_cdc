@@ -76,8 +76,9 @@ def get_entries
 end
 
 get '/xml_list' do 
-   puts "Hello"
-   #get_entries do |key|
-   #   puts "key #{key}<br/>"
-   #end
+   msg=[]
+   get_entries do |key|
+      msg.push "key #{key}<br/>"
+   end
+   msg.join()
 end
