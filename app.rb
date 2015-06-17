@@ -35,7 +35,7 @@ post '/xml_upload' do
       s3_upload_xml(body, dir_name)
 
       # generate daily/dir_name/data.json
-#      s3_upload_data(body, dir_name)
+      s3_upload_data(body, dir_name)
 
       # generate stats/stats.json
 #      s3_upload_stats
