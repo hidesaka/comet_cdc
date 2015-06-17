@@ -64,7 +64,7 @@ def get_entries
    Aws.config[:region] = "ap-northeast-1"
    bucket="comet-cdc"
    s3 = Aws::S3::Client.new
-   s3.list_objects(bucket: bucket, prefix: "xml/").contents.each do |obj|
+   s3.list_objects(bucket: bucket).contents.each do |obj|
       yield obj.key
       #if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
       #   date = "#{$1}/#{$2}/#{$3}"
