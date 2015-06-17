@@ -6,6 +6,7 @@ require './script/test.rb'
 require 'fileutils'
 
 require 'aws-sdk'
+require 'json'
 
 creds = JSON.load(File.read("secrets.json"))
 Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
@@ -44,7 +45,8 @@ post '/xml_upload' do
 
       # generate daily/dir_name/data.json
       #write_entry(dir_name)
-      data_json = get_info(params[:file][:filename])
+      data = get_info(params[:file][:tempfile])
+      data_json = JSON.generate(data)
       #upload("this is test", "daily/#{dir_name}/data.json")
       upload(data_json, "daily/#{dir_name}/data.json")
       #upload(data_json, "daily/current/data.json")
