@@ -819,7 +819,6 @@ $(function () {
          return data;
       };
 
-      /*
       s3.listObjects(function(err,data) {
             console.log("=== debug ===");
             if (err=== null) {
@@ -831,6 +830,7 @@ $(function () {
                });
             }
       });
+      /*
       s3.getObject(
          {
             Bucket: s3BucketName,
