@@ -58,10 +58,20 @@ def read_in(date_str)
    JSON.parse(str, :symbolize_names => true)
 end
 
+#def get_entries
+#   Dir.glob("#{XML_DIR}/20*") do |f|
+#      if (f=~/#{XML_DIR}\/(20.*)/)
+#         yield $1
+#      end
+#   end
+#end
 def get_entries
-   Dir.glob("#{XML_DIR}/20*") do |f|
-      if (f=~/#{XML_DIR}\/(20.*)/)
-         yield $1
+   s3.list_objects(bucket: bucket, prefix: "xml/").contents.each do |obj|
+      if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
+         date = "#{$1}/#{$2}/#{$3}"
+         body = s3.get_object(bucket: bucket, key: obj.key).body.read
+         yield date, body
+         #puts  "#{$1}/#{$2}/#{$3}"
       end
    end
 end
@@ -116,11 +126,8 @@ def get_stats
    stats=[]
    prev_size=0
    days=0
-   get_entries do |entry|
-      puts entry
-      date = get_date(entry)
+   get_entries do |date, datum|
       utime = Time.parse(date).to_i*1000 # (ms) for D3.js
-      datum = read_in(entry)
       days+=1
       num_sum = datum.size
       num_sense = datum.count { |data| data[:tBase]=="50" }
