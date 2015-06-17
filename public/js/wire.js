@@ -833,7 +833,7 @@ $(function () {
       };
 
       //var gauge_csv_name ="./csv/dial_gauge.csv";
-      var gauge_csv_name = read_from_s3("csv/dial_gauge.csv"):
+      var gauge_csv_name = read_from_s3("csv/dial_gauge.csv");
 
       d3.csv(gauge_csv_name, function(error, csv) {
             var i, j;
