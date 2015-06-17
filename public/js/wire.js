@@ -607,27 +607,27 @@ $(function () {
          var frame_wire = make_frame(svg_wire, "date", "loading of wires (kg)", xdomain, ydomain_wire, {xaxis_type: "time"});
          makeScatterPlot(frame_wire, dailies, "utime", "wire_tension_kg", { stroke: "#ff1493", fill: "#ff69b4", stroke_width: "1px", line_stroke: "#ff1493" },[],
             { label: [ { data: [ labelA, function(d) { return d.wire_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
+      };
 
-         var read_tensionbar_csv = function(csv) {
-            var i, j;
-            var data=[];
-            for (i=0, j=0; i<csv.length; i++) {
+      var read_tensionbar_csv = function(csv) {
+         var i, j;
+         var data=[];
+         for (i=0, j=0; i<csv.length; i++) {
 
-               var d1 = csv[i]["Date"];
-               var d2 = csv[i]["Tension_kg"];
-               //console.log("d1 " + d1);
-               //console.log("d2 " + d2);
-               if ( _.isEmpty(d1) || _.isEmpty(d2)) continue;
+            var d1 = csv[i]["Date"];
+            var d2 = csv[i]["Tension_kg"];
+            //console.log("d1 " + d1);
+            //console.log("d2 " + d2);
+            if ( _.isEmpty(d1) || _.isEmpty(d2)) continue;
 
-               var utime = Date.parse(d1);
-               //console.log("csv " + csv[i] + " Date " + d1 +  " utime " + utime);
-               var tension_kg = parseFloat(d2);
+            var utime = Date.parse(d1);
+            //console.log("csv " + csv[i] + " Date " + d1 +  " utime " + utime);
+            var tension_kg = parseFloat(d2);
 
-               data[j++] = { utime: utime, tension_kg: tension_kg };
-            }
-            //console.log(data);
-            return data;
-         };
+            data[j++] = { utime: utime, tension_kg: tension_kg };
+         }
+         //console.log(data);
+         return data;
       };
 
       //var bar_csv_name ="./csv/tension_bar.csv";
