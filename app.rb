@@ -53,8 +53,8 @@ post '/xml_upload' do
       #FileUtils.ln_s("#{dir_name}","public/daily/current")
 
       # generate stats/stats.json
-      stats_json = get_stats
-      upload(stats_json, "stats/stats.json")
+      #stats_json = get_stats
+      #upload(stats_json, "stats/stats.json")
       
       redirect '/'
    end
