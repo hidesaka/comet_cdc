@@ -637,37 +637,39 @@ $(function () {
                   jQuery.each(data.Contents, function(index, obj) {
                         var params = {Bucket: s3BucketName, Key: obj.Key};
                         var url = s3.getSignedUrl('getObject', params);
-                        if (obj.Key!="csv/tension_bar.csv") return true;
 
-                        d3.csv(url, function(error, csv) {
-                              var i, j;
+                        if (obj.Key=="csv/tension_bar.csv") {
 
-                              var bar_data = read_tensionbar_csv(csv);
-                              for (i=0, j=0; i<dailies.length; i++) {
-                                 dailies[i].bar_tension_kg = bar_data[j].tension_kg;
-                                 dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j].tension_kg;
-                                 if (dailies[i].utime < bar_data[j].utime) {
-                                    j++;
+                           d3.csv(url, function(error, csv) {
+                                 var i, j;
+
+                                 var bar_data = read_tensionbar_csv(csv);
+                                 for (i=0, j=0; i<dailies.length; i++) {
+                                    dailies[i].bar_tension_kg = bar_data[j].tension_kg;
+                                    dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j].tension_kg;
+                                    if (dailies[i].utime < bar_data[j].utime) {
+                                       j++;
+                                    }
                                  }
-                              }
 
-                              // TensionBar + Wire
-                              var ydomain_all = [d3.min(dailies, function(d) { return d.all_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.all_tension_kg; })*1.1];
-                              var svg_all = append_svg("#menu_load_all");
-                              var frame_all = make_frame(svg_all, "date", "total loading (kg)", xdomain, ydomain_all, {xaxis_type: "time"});
-                              makeScatterPlot(frame_all, dailies, "utime", "all_tension_kg", 
-                                 {fill: "#9966ff", stroke: "#6633cc", stroke_width: "1px", line_stroke: "#6633cc" }, [],
-                                 { label: [ { data: [ labelA, function(d) { return d.all_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
+                                 // TensionBar + Wire
+                                 var ydomain_all = [d3.min(dailies, function(d) { return d.all_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.all_tension_kg; })*1.1];
+                                 var svg_all = append_svg("#menu_load_all");
+                                 var frame_all = make_frame(svg_all, "date", "total loading (kg)", xdomain, ydomain_all, {xaxis_type: "time"});
+                                 makeScatterPlot(frame_all, dailies, "utime", "all_tension_kg", 
+                                    {fill: "#9966ff", stroke: "#6633cc", stroke_width: "1px", line_stroke: "#6633cc" }, [],
+                                    { label: [ { data: [ labelA, function(d) { return d.all_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
 
-                              // TensionBar
-                              var ydomain_bar = [d3.min(dailies, function(d) { return d.bar_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.bar_tension_kg; })*1.1];
-                              //console.log("xdomain_bar " + xdomain_bar);
-                              //console.log("ydomain_bar " + ydomain_bar);
-                              var svg_bar = append_svg("#menu_load_bar");
-                              var frame_bar = make_frame(svg_bar, "date", "loading of tension bars (kg)", xdomain, ydomain_bar, {xaxis_type: "time"});
-                              makeScatterPlot(frame_bar, dailies, "utime", "bar_tension_kg", { fill: "#0081B8", stroke: "blue", stroke_width: "1px", line_stroke: "blue"}, [],
-                                 { label: [ { data: [ labelA, function(d) { return d.bar_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
-                        });
+                                 // TensionBar
+                                 var ydomain_bar = [d3.min(dailies, function(d) { return d.bar_tension_kg; })*0.9, d3.max(dailies, function(d) { return d.bar_tension_kg; })*1.1];
+                                 //console.log("xdomain_bar " + xdomain_bar);
+                                 //console.log("ydomain_bar " + ydomain_bar);
+                                 var svg_bar = append_svg("#menu_load_bar");
+                                 var frame_bar = make_frame(svg_bar, "date", "loading of tension bars (kg)", xdomain, ydomain_bar, {xaxis_type: "time"});
+                                 makeScatterPlot(frame_bar, dailies, "utime", "bar_tension_kg", { fill: "#0081B8", stroke: "blue", stroke_width: "1px", line_stroke: "blue"}, [],
+                                    { label: [ { data: [ labelA, function(d) { return d.bar_tension_kg.toFixed(1) + ' kg';} ], separator:' '} ]});
+                           });
+                        }
                   });
                }
          });
