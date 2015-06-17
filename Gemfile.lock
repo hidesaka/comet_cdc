@@ -28,6 +28,7 @@ GEM
       domain_name (~> 0.5)
     jmespath (1.0.2)
       multi_json (~> 1.0)
+    json (1.8.1)
     launchy (2.4.3)
       addressable (~> 2.3)
     libxml-ruby (2.8.0)
@@ -68,6 +69,7 @@ DEPENDENCIES
   aws-sdk
   foreman
   heroku
+  json
   libxml-ruby
   sinatra
   sinatra-contrib
