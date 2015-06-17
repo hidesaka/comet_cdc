@@ -17,6 +17,9 @@ $(function () {
       var s3BucketName = "comet-cdc";
       var s3RegionName = "ap-northeast-1"
       var s3 = new AWS.S3({params: {Bucket: s3BucketName, Region: s3RegionName}});
+      console.log("=== s3 ====");
+      console.log(s3);
+      console.log("===========");
 
       var first_call=true;
       var first_call_hist={"sense":true, "field":true};
