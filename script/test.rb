@@ -80,28 +80,21 @@ end
 # Local  #
 ##########
 
-def local_read_xml(xml_path)
-   Dir.glob("#{xml_path}/COMETCDC.xml") do |f|
-      if (f =~ /#{xml_path}\/(....)(..)(..)\/COMETCDC\.xml/)
+def local_xml_to_daily_datum(xml_dir)
+   puts dir
+   Dir.glob("#{xml_dir}/COMETCDC.xml") do |f|
+      if (f =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
          date = "#{$1}/#{$2}/#{$3}"
+         puts "date -> #{date}"
          yield date, xml_to_day_info(open(f).read)
       end
    end
 end
 
-def local_read_xmls(dir)
-   Dir.glob("#{dir}/*/COMETCDC.xml") do |f|
-      if (f =~ /#{dir}\/(....)(..)(..)\/COMETCDC\.xml/)
-         date = "#{$1}/#{$2}/#{$3}"
-         yield date, xml_to_day_info(open(f).read)
-      end
-   end
-end
-
-def local_read_stats(xml_dir, daily_dir)
+def local_xml_to_daily_stats(xml_dir, daily_dir)
    prev_size=0
    days=0
-   local_read_xmls(xml_dir) do |date, xml|
+   local_xml_to_daily_datum(xml_dir) do |date, xml|
       days+=1
       puts date
       utime = Time.parse(date).to_i*1000 # (ms) for D3.js
@@ -135,18 +128,44 @@ end
 #write_entry("20150610")
 #write_entries
 
-def local_write_stats
-   local_read_stats("../xml", "../daily") do |date,stat|
+def local_write_daily_datum(xml_dir)
+   local_xml_to_daily_datum(xml_dir) do |date, data|
+      puts date
+      date = date.gsub('/','')
+      FileUtils.mkdir_p("../daily/#{date}")
+      File.open("../daily/#{date}/data.json","w") { |f| JSON.dump(data, f) }
+   end
+end
+
+
+def local_read_daily_datum(daily_dir)
+   Dir.glob("#{daily_dir}/data.json") do |f|
+      if (f =~ /(\d\d\d\d)(\d\d)(\d\d)\/+data\.json/)
+         date = "#{$1}/#{$2}/#{$3}"
+         data = JSON.parse(File.open(f).read, :symbolize_names => true)
+         yield date.gsub('/',''), data
+      end
+   end
+end
+
+def local_dump_daily_datum(daily_dir)
+   local_read_daily_datum(daily_dir) do |date, data|
+      puts date
+      puts data
+   end
+end
+
+
+def local_write_daily_stats(xml_dir)
+   local_xml_to_daily_stats(xml_dir, "../daily") do |date,stat|
       FileUtils.mkdir_p("../daily/#{date}")
       File.open("../daily/#{date}/stat.json","w") { |f| JSON.dump(stat, f) }
    end
 end
 
-#local_write_stats
-
-def local_get_stats(daily_dir)
-   Dir.glob("#{daily_dir}/*/stat.json") do |f|
-      if (f =~ /#{daily_dir}\/(....)(..)(..)\/stat\.json/)
+def local_read_daily_stats(daily_dir)
+   Dir.glob("#{daily_dir}/stat.json") do |f|
+      if (f =~ /(\d\d\d\d)(\d\d)(\d\d)\/+stat\.json/)
          date = "#{$1}/#{$2}/#{$3}"
          stat = JSON.parse(File.open(f).read, :symbolize_names => true)
          yield date.gsub('/',''), stat
@@ -154,36 +173,38 @@ def local_get_stats(daily_dir)
    end
 end
 
-def local_dump_stats
-   local_get_stats("../daily") do |date, stat|
+def local_dump_daily_stats(daily_dir)
+   local_read_daily_stats(daily_dir) do |date, stat|
       puts date
       puts stat
    end
 end
 
 
-##########
-#   S3   #
-##########
+#############
+#  S3       #
+#############
 
-def s3_read_xmls
+def s3_xml_to_daily_datum(xml_dir='')
    creds = JSON.load(File.read("secrets.json"))
    Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
    Aws.config[:region] = "ap-northeast-1"
    bucket="comet-cdc"
    s3 = Aws::S3::Client.new
    s3.list_objects(bucket: bucket, prefix: "xml/").contents.each do |obj|
-      if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
+      if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
          date = "#{$1}/#{$2}/#{$3}"
-         yield date, xml_to_day_info(s3.get_object(bucket: bucket, key: obj.key).body.read)
+         if (xml_dir.empty? or xml_dir === "#{$1}#{$2}#{$3}") 
+            yield date, xml_to_day_info(s3.get_object(bucket: bucket, key: obj.key).body.read)
+         end
       end
    end
 end
 
-def s3_read_stats
+def s3_xml_to_daily_stats(xml_dir='')
    prev_size=0
    days=0
-   s3_read_xmls do |date, xml|
+   s3_xml_to_daily_datum(xml_dir) do |date, xml|
       days+=1
       puts date
       utime = Time.parse(date).to_i*1000 # (ms) for D3.js
@@ -215,40 +236,73 @@ def s3_upload(body, key)
    s3.put_object(bucket: "comet-cdc", body: body, key: key)
 end
 
-def s3_write_stats
-   s3_read_stats do |date,stat|
+def s3_write_daily_datum(xml_dir='')
+   s3_xml_to_daily_datum(xml_dir) do |date, data|
       puts date
-      puts stat
-      s3_upload(JSON.generate(stat), "daily/#{date}/stat.json")
+      date = date.gsub('/','')
+      s3_upload(JSON.generate(data), "daily/#{date}/data.json")
    end
 end
 
-#s3_write_stats
-
-def s3_get_stats
+def s3_read_daily_datum(daily_dir='')
    creds = JSON.load(File.read("secrets.json"))
    Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
    Aws.config[:region] = "ap-northeast-1"
    bucket="comet-cdc"
    s3 = Aws::S3::Client.new
    s3.list_objects(bucket: bucket, prefix: "daily/").contents.each do |obj|
-      if (obj.key =~ /daily\/(....)(..)(..)\/stat\.json/)
+      #puts "obj.key -> #{obj.key}"
+      if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+data\.json/)
          date = "#{$1}/#{$2}/#{$3}"
-         body = s3.get_object(bucket: bucket, key: obj.key).body.read
-         stat = JSON.parse(body, :symbolize_names => true)
-         yield date.gsub('/',''), stat
+         if (daily_dir.empty? or daily_dir === "#{$1}#{$2}#{$3}") 
+            body = s3.get_object(bucket: bucket, key: obj.key).body.read
+            data = JSON.parse(body, :symbolize_names => true)
+            yield date.gsub('/',''), data
+         end
       end
    end
 end
 
-def s3_dump_stats
-   s3_get_stats do |date, stat|
+def s3_dump_daily_datum(daily_dir='')
+   s3_read_daily_datum(daily_dir) do |date, data|
+      puts date
+      puts data
+   end
+end
+
+def s3_write_daily_stats(xml_dir='')
+   s3_xml_to_daily_stats(xml_dir) do |date,stat|
+      puts date
+      puts stat
+      s3_upload(JSON.generate(stat), "daily/#{date}/stat.json")
+   end
+end
+
+def s3_read_daily_stats(daily_dir='')
+   creds = JSON.load(File.read("secrets.json"))
+   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
+   Aws.config[:region] = "ap-northeast-1"
+   bucket="comet-cdc"
+   s3 = Aws::S3::Client.new
+   s3.list_objects(bucket: bucket, prefix: "daily/").contents.each do |obj|
+      if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+stat\.json/)
+         date = "#{$1}/#{$2}/#{$3}"
+         #puts "date -> #{date}"
+         if (daily_dir.empty? or daily_dir === "#{$1}#{$2}#{$3}") 
+            body = s3.get_object(bucket: bucket, key: obj.key).body.read
+            stat = JSON.parse(body, :symbolize_names => true)
+            yield date.gsub('/',''), stat
+         end
+      end
+   end
+end
+
+def s3_dump_daily_stats(daily_dir='')
+   s3_read_daily_stats(daily_dir) do |date, stat|
       puts date
       puts stat
    end
 end
-
-#s3_dump_stats
 
 ###########
 # uplload xml/data/stat/stats
@@ -264,14 +318,61 @@ def upload_data(xml_body, dir_name)
    s3_upload(data_json, "daily/current/data.json")
 end
 
+def local_upload_daily_datum(daily_dir)
+   local_read_daily_datum(daily_dir) do |date, stat| 
+      puts date
+      s3_upload(JSON.generate(stat), "daily/#{date}/data.json")
+   end
+end
+
+def local_upload_daily_stat(daily_dir)
+   local_read_daily_stats(daily_dir) do |date, stat| 
+      puts date
+      s3_upload(JSON.generate(stat), "daily/#{date}/stat.json")
+   end
+end
+
 def s3_upload_stats
    stats = []
-   s3_get_stats { |date, stat| stats.push stat }
+   s3_read_daily_stats('') { |date, stat| stats.push stat }
    s3_upload(JSON.generate(stats), "stats/stats.json")
 end
 
 def local_upload_stats
    stats = []
-   local_get_stats { |date, stat| stats.push stat }
+   local_read_daily_stats("../daily/*/") { |date, stat| stats.push stat }
+   puts stats
    s3_upload(JSON.generate(stats), "stats/stats.json")
+end
+
+USAGE=<<END
+./script/test.rb <func_name> <arguments>
+ex.
+./script/test.rb local_write_daily_datum("../daily/*/")
+
+List of functions
+   def local_write_daily_datum(xml_dir)
+   def local_read_daily_datum(daily_dir)
+   def local_dump_daily_datum(daily_dir)
+   def local_write_daily_stats(xml_dir)
+   def local_read_daily_stats(daily_dir)
+   def local_dump_daily_stats(daily_dir)
+   def s3_write_daily_datum(xml_dir='')
+   def s3_read_daily_datum(daily_dir='')
+   def s3_dump_daily_datum(daily_dir='')
+   def s3_write_daily_stats(xml_dir='')
+   def s3_read_daily_stats(daily_dir='')
+   def s3_dump_daily_stats(daily_dir='')
+   def local_upload_daily_datum(daily_dir)
+   def local_upload_daily_stat(daily_dir)
+   def s3_upload_stats
+   def local_upload_stats
+END
+
+if $0 == __FILE__
+   if ARGV.size == 0
+      puts USAGE
+      exit
+   end
+   send(ARGV[0],ARGV[1])
 end
