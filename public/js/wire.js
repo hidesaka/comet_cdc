@@ -827,55 +827,41 @@ $(function () {
                      var url = s3.getSignedUrl('getObject', params);
                      console.log("obj.Key " + obj.Key);
                      console.log("url " + url);
+                     if (obj.Key!="csv/dial_gauge.csv") continue;
+
+                     d3.csv(url, function(error, csv) {
+                           var i, j;
+
+                           var gauge_data = read_gauge_csv(csv);
+                           console.log("csv");
+                           console.log(csv);
+                           console.log("gauge_data");
+                           console.log(gauge_data);
+                           //gauge_data = _.take(gauge_data, 1);
+                           var xdomain_gauge = d3.extent(gauge_data, function(d) { return d.utime; });
+                           var ydomain_gauge = d3.extent(gauge_data, function(d) { return d.disp_um; });
+                           //xdomain_gauge = [1432610000000, 1432612000000];
+                           //ydomain_gauge = [-10, 10];
+                           var svg_gauge = append_svg("#menu_gauge");
+                           var frame_gauge = make_frame(svg_gauge, "date", "displacement (um)", xdomain_gauge, ydomain_gauge, {xaxis_type: "time"});
+                           var stroke_gauge = {at10deg:"#ed5454", at90deg:"#3874e3", at180deg:"#228b22", at270deg:"#ffa500" };
+                           var fill_gauge   = {at10deg:"#f8d7d7", at90deg:"#bdd0f4", at180deg:"#9acd32", at270deg:"#ffead6" };
+
+                           makeScatterPlot(frame_gauge, gauge_data, "utime", "disp_um", 
+                              { 
+                                 fill: function(d) { return fill_gauge[d.location]; },
+                                 stroke: function(d) { return stroke_gauge[d.location]; },
+                                 stroke_width: "1px"
+                              },
+                              [
+                                 {label:"10deg",  stroke:'#ed5454', fill: "#f8d7d7", ypos:"66" },
+                                 {label:"90deg",  stroke:'#3874e3', fill: "#bdd0f4", ypos:"83" },
+                                 {label:"180deg", stroke:'#228b22', fill: "#9acd32", ypos:"100"},
+                                 {label:"270deg", stroke:'#ffa500', fill: "#ffead6", ypos:"117"}
+                              ],
+                              {label: [ {data: [ "date", "time", function(d) {return d.disp_um.toFixed(0);} ], separator:' ', postfix:' um'} ]});
+                     });
                });
             }
-      });
-      /*
-      s3.getObject(
-         {
-            Bucket: s3BucketName,
-            Key: 'csv/dial_gauge.csv',
-            ResponseContentType: 'text/plain'
-      */
-
-     //var params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
-     var url = s3.getSignedUrl('getObject', {
-           Bucket: 'comet-cdc',
-           Key: 'csv/dial_gauge.csv'
-     });
-     //var url = "http://133.1.141.121/~sakamoto/dial_gauge.csv"
-     console.log("url");
-     console.log(url);
-     d3.csv(url, function(error, csv) {
-            var i, j;
-
-            var gauge_data = read_gauge_csv(csv);
-            console.log("csv");
-            console.log(csv);
-            console.log("gauge_data");
-            console.log(gauge_data);
-            //gauge_data = _.take(gauge_data, 1);
-            var xdomain_gauge = d3.extent(gauge_data, function(d) { return d.utime; });
-            var ydomain_gauge = d3.extent(gauge_data, function(d) { return d.disp_um; });
-            //xdomain_gauge = [1432610000000, 1432612000000];
-            //ydomain_gauge = [-10, 10];
-            var svg_gauge = append_svg("#menu_gauge");
-            var frame_gauge = make_frame(svg_gauge, "date", "displacement (um)", xdomain_gauge, ydomain_gauge, {xaxis_type: "time"});
-            var stroke_gauge = {at10deg:"#ed5454", at90deg:"#3874e3", at180deg:"#228b22", at270deg:"#ffa500" };
-            var fill_gauge   = {at10deg:"#f8d7d7", at90deg:"#bdd0f4", at180deg:"#9acd32", at270deg:"#ffead6" };
-
-            makeScatterPlot(frame_gauge, gauge_data, "utime", "disp_um", 
-               { 
-                  fill: function(d) { return fill_gauge[d.location]; },
-                  stroke: function(d) { return stroke_gauge[d.location]; },
-                  stroke_width: "1px"
-               },
-               [
-                  {label:"10deg",  stroke:'#ed5454', fill: "#f8d7d7", ypos:"66" },
-                  {label:"90deg",  stroke:'#3874e3', fill: "#bdd0f4", ypos:"83" },
-                  {label:"180deg", stroke:'#228b22', fill: "#9acd32", ypos:"100"},
-                  {label:"270deg", stroke:'#ffa500', fill: "#ffead6", ypos:"117"}
-               ],
-               {label: [ {data: [ "date", "time", function(d) {return d.disp_um.toFixed(0);} ], separator:' ', postfix:' um'} ]});
       });
 });
