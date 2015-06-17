@@ -44,8 +44,8 @@ post '/xml_upload' do
 
       # generate daily/dir_name/data.json
       #write_entry(dir_name)
-      #data_json = get_info(params[:file][:tempfile])
-      #upload(data_json, "daily/#{dir_name}/data.json")
+      data_json = get_info(params[:file][:tempfile])
+      upload(data_json, "daily/#{dir_name}/data.json")
       #upload(data_json, "daily/current/data.json")
 
       # make link of current dir_name
