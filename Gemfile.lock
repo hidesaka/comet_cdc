@@ -2,6 +2,12 @@ GEM
   remote: https://rubygems.org/
   specs:
     addressable (2.3.8)
+    aws-sdk (2.1.0)
+      aws-sdk-resources (= 2.1.0)
+    aws-sdk-core (2.1.0)
+      jmespath (~> 1.0)
+    aws-sdk-resources (2.1.0)
+      aws-sdk-core (= 2.1.0)
     backports (3.6.4)
     domain_name (0.5.24)
       unf (>= 0.0.5, < 1.0.0)
@@ -20,6 +26,8 @@ GEM
       multi_json (~> 1.8)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
+    jmespath (1.0.2)
+      multi_json (~> 1.0)
     launchy (2.4.3)
       addressable (~> 2.3)
     libxml-ruby (2.8.0)
@@ -57,6 +65,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aws-sdk
   foreman
   heroku
   libxml-ruby
