@@ -38,11 +38,11 @@ post '/xml_upload' do
       data_json = JSON.generate(data)
       upload(data_json, "daily/#{dir_name}/data.json")
       upload(data_json, "daily/current/data.json")
-#
-#      # generate stats/stats.json
-#      stats = get_stats
-#      stats_json = JSON.generate(stats)
-#      upload(stats_json, "stats/stats.json")
+
+      # generate stats/stats.json
+      stats = get_stats
+      stats_json = JSON.generate(stats)
+      upload(stats_json, "stats/stats.json")
       
       redirect '/'
    end
