@@ -58,27 +58,11 @@ post '/csv_upload' do
    end
 end
 
-def get_entries2
-   creds = JSON.load(File.read("secrets.json"))
-   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
-   Aws.config[:region] = "ap-northeast-1"
-   bucket="comet-cdc"
-   s3 = Aws::S3::Client.new
-   s3.list_objects(bucket: bucket, prefix: "xml").contents.each do |obj|
-      yield obj.key
-      #if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
-      #   date = "#{$1}/#{$2}/#{$3}"
-      #   body = s3.get_object(bucket: bucket, key: obj.key).body.read
-      #   yield date, JSON.generate(body)
-      #   #puts  "#{$1}/#{$2}/#{$3}"
-      #end
-   end
-end
 
 get '/xml_list' do 
    msg=[]
-   get_entries2 do |key|
-      msg.push "key #{key}<br/>"
+   get_entries do |date, datum|
+      msg.push "date #{date}<br/>"
    end
    msg.join()
 end
