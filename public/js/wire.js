@@ -819,6 +819,18 @@ $(function () {
          return data;
       };
 
+      s3.listObjects(function(err,data) {
+            console.log("=== debug ===");
+            if (err=== null) {
+               jQuery.each(data.Contents, function(index, obj) {
+                     var params = {Bucket: s3BucketName, Key: obj.Key};
+                     var url = s3.getSignedUrl('getObject', params);
+                     console.log("obj.Key " + obj.Key);
+                     console.log("url " + url);
+               });
+            }
+      });
+
       s3.getObject(
          {
             Bucket: s3BucketName,
