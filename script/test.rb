@@ -70,7 +70,7 @@ def get_entries
       if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
          date = "#{$1}/#{$2}/#{$3}"
          body = s3.get_object(bucket: bucket, key: obj.key).body.read
-         yield date, body
+         yield date, JSON.generate(body)
          #puts  "#{$1}/#{$2}/#{$3}"
       end
    end
