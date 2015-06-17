@@ -4,6 +4,8 @@ require 'json'
 require 'pp'
 require 'xml'
 require 'time'
+require 'fileutils'
+require 'aws-sdk'
 
 $num_wires = [
    396, 396, 396, 408, 408, 420, 420,
@@ -19,9 +21,8 @@ def get_total_wires
     $num_wires.reduce(0) { |memo, n| memo + n }
 end
 
-
-def get_info(xml)
-   doc = XML::Document.string(open(xml).read)
+def xml_to_day_info(xml_contents)
+   doc = XML::Document.string(xml_contents)
 
    datum=[]
    (1..39).each do |layerid|
@@ -41,58 +42,6 @@ def get_info(xml)
    end
 
    datum
-end
-
-XML_DIR="public/xml/"
-DAILY_DIR="public/daily/"
-STAT_FILE="public/stats/stats.json"
-   
-def write_entry(date_str)
-   Dir.mkdir("#{DAILY_DIR}/#{date_str}") unless File.exists?("#{DAILY_DIR}/#{date_str}")
-   datum = get_info("#{XML_DIR}/#{date_str}/COMETCDC.xml")
-   open("#{DAILY_DIR}/#{date_str}/data.json", "w") {|f| JSON.dump(datum, f)}
-end
-
-def read_in(date_str)
-   str = open("#{DAILY_DIR}/#{date_str}/data.json", "r") {|f| f.read }
-   JSON.parse(str, :symbolize_names => true)
-end
-
-#def get_entries
-#   Dir.glob("#{XML_DIR}/20*") do |f|
-#      if (f=~/#{XML_DIR}\/(20.*)/)
-#         yield $1
-#      end
-#   end
-#end
-def get_entries
-   creds = JSON.load(File.read("secrets.json"))
-   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
-   Aws.config[:region] = "ap-northeast-1"
-   bucket="comet-cdc"
-   s3 = Aws::S3::Client.new
-   s3.list_objects(bucket: bucket, prefix: "xml/").contents.each do |obj|
-      if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
-         date = "#{$1}/#{$2}/#{$3}"
-         body = s3.get_object(bucket: bucket, key: obj.key).body.read
-         yield date, JSON.generate(body)
-         #puts  "#{$1}/#{$2}/#{$3}"
-      end
-   end
-end
-
-def write_entries
-   get_entries do |entry|
-      puts entry
-      write_entry(entry)
-   end
-end
-
-def get_date(dir_name)
-   # dir_name is 20150601 etc.
-   # change -> 2015/06/01
-   dir_name =~ /(....)(..)(..)/
-   "#{$1}/#{$2}/#{$3}"
 end
 
 
@@ -127,45 +76,184 @@ def get_last_date(now_utime_sec, num_wires, num_ave)
 end
 
 
-def get_stats
-   stats=[]
+##########
+# Local  #
+##########
+
+def local_read_xmls(dir)
+   Dir.glob("#{dir}/*/COMETCDC.xml") do |f|
+      if (f =~ /\.\.\/xml\/(....)(..)(..)\/COMETCDC\.xml/)
+         date = "#{$1}/#{$2}/#{$3}"
+         yield date, xml_to_day_info(open(f).read)
+      end
+   end
+end
+
+def local_read_stats(xml_dir, daily_dir)
    prev_size=0
    days=0
-   get_entries do |date, datum|
-      utime = Time.parse(date).to_i*1000 # (ms) for D3.js
+   local_read_xmls(xml_dir) do |date, xml|
       days+=1
-      num_sum = datum.size
-      num_sense = datum.count { |data| data[:tBase]=="50" }
-      num_field = datum.count { |data| data[:tBase]=="80" }
-      num_day = datum.size-prev_size
-      prev_size = datum.size
-      wire_tension_kg = datum.reduce(0) { |memo,data| memo + data[:tens]*0.001 }
+      puts date
+      utime = Time.parse(date).to_i*1000 # (ms) for D3.js
+      num_sum = xml.size
+      num_sense = xml.count { |data| data[:tBase]=="50" }
+      num_field = xml.count { |data| data[:tBase]=="80" }
+      num_day = xml.size-prev_size
+      prev_size = xml.size
+      wire_tension_kg = xml.reduce(0) { |memo,data| memo + data[:tens]*0.001 }
 
-      num_ave = datum.size/days.to_f
-      num_bad = datum.count do |data|
+      num_ave = xml.size/days.to_f
+      num_bad = xml.count do |data|
          sense = (data[:tBase]=="50" && (data[:tens]<45.0 || data[:tens]>55.0) )
          field = (data[:tBase]=="80" && (data[:tens]<72.0 || data[:tens]>88.0) )
          sense || field
       end
       last_date, last_utime = get_last_date(utime/1000, num_sum, num_ave)
       stat = {date: date, utime: utime, days: days, num_sum: num_sum, num_sense: num_sense, num_field: num_field, num_day: num_day, num_ave: num_ave, num_bad: num_bad,
-      wire_tension_kg: wire_tension_kg, last_date: last_date, last_utime: last_utime}
-      stats.push(stat)
+         wire_tension_kg: wire_tension_kg, last_date: last_date, last_utime: last_utime}
+      yield date.gsub('/',''), stat
    end
-   stats
 end
 
-def write_stats
-   stats = get_stats
-   File.open(STAT_FILE,"w") { |f| JSON.dump(stats, f) }
-end
 
-p ARGV
-if (ARGV[0]=="daily") then
-   write_entry(ARGV[1])
-elsif (ARGV[0]=="stats") then
-   write_stats
-end
+#p ARGV
+#if (ARGV[0]=="daily") then
+#   write_entry(ARGV[1])
+#elsif (ARGV[0]=="stats") then
+#   write_stats
+#end
 #write_entry("20150610")
 #write_entries
-#write_stats
+
+def local_write_stats
+   local_read_stats("../xml", "../daily") do |date,stat|
+      FileUtils.mkdir_p("../daily/#{date}")
+      File.open("../daily/#{date}/stat.json","w") { |f| JSON.dump(stat, f) }
+   end
+end
+
+#local_write_stats
+
+def local_get_stats(daily_dir)
+   Dir.glob("#{daily_dir}/*/stat.json") do |f|
+      if (f =~ /#{daily_dir}\/(....)(..)(..)\/stat\.json/)
+         date = "#{$1}/#{$2}/#{$3}"
+         stat = JSON.parse(File.open(f).read, :symbolize_names => true)
+         yield date.gsub('/',''), stat
+      end
+   end
+end
+
+def local_dump_stats
+   local_get_stats("../daily") do |date, stat|
+      puts date
+      puts stat
+   end
+end
+
+
+##########
+#   S3   #
+##########
+
+def s3_read_xmls
+   creds = JSON.load(File.read("secrets.json"))
+   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
+   Aws.config[:region] = "ap-northeast-1"
+   bucket="comet-cdc"
+   s3 = Aws::S3::Client.new
+   s3.list_objects(bucket: bucket, prefix: "xml/").contents.each do |obj|
+      if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
+         date = "#{$1}/#{$2}/#{$3}"
+         yield date, xml_to_day_info(s3.get_object(bucket: bucket, key: obj.key).body.read)
+      end
+   end
+end
+
+def s3_read_stats
+   prev_size=0
+   days=0
+   s3_read_xmls do |date, xml|
+      days+=1
+      puts date
+      utime = Time.parse(date).to_i*1000 # (ms) for D3.js
+      num_sum = xml.size
+      num_sense = xml.count { |data| data[:tBase]=="50" }
+      num_field = xml.count { |data| data[:tBase]=="80" }
+      num_day = xml.size-prev_size
+      prev_size = xml.size
+      wire_tension_kg = xml.reduce(0) { |memo,data| memo + data[:tens]*0.001 }
+
+      num_ave = xml.size/days.to_f
+      num_bad = xml.count do |data|
+         sense = (data[:tBase]=="50" && (data[:tens]<45.0 || data[:tens]>55.0) )
+         field = (data[:tBase]=="80" && (data[:tens]<72.0 || data[:tens]>88.0) )
+         sense || field
+      end
+      last_date, last_utime = get_last_date(utime/1000, num_sum, num_ave)
+      stat = {date: date, utime: utime, days: days, num_sum: num_sum, num_sense: num_sense, num_field: num_field, num_day: num_day, num_ave: num_ave, num_bad: num_bad,
+         wire_tension_kg: wire_tension_kg, last_date: last_date, last_utime: last_utime}
+      yield date.gsub('/',''), stat
+   end
+end
+
+def s3_upload(body, key)
+   creds = JSON.load(File.read("secrets.json"))
+   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
+   Aws.config[:region] = "ap-northeast-1"
+   s3 = Aws::S3::Client.new
+   s3.put_object(bucket: "comet-cdc", body: body, key: key)
+end
+
+def s3_write_stats
+   s3_read_stats do |date,stat|
+      puts date
+      puts stat
+      s3_upload(JSON.generate(stat), "daily/#{date}/stat.json")
+   end
+end
+
+#s3_write_stats
+
+def s3_get_stats
+   creds = JSON.load(File.read("secrets.json"))
+   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
+   Aws.config[:region] = "ap-northeast-1"
+   bucket="comet-cdc"
+   s3 = Aws::S3::Client.new
+   s3.list_objects(bucket: bucket, prefix: "daily/").contents.each do |obj|
+      if (obj.key =~ /daily\/(....)(..)(..)\/stat\.json/)
+         date = "#{$1}/#{$2}/#{$3}"
+         body = s3.get_object(bucket: bucket, key: obj.key).body.read
+         stat = JSON.parse(body, :symbolize_names => true)
+         yield date.gsub('/',''), stat
+      end
+   end
+end
+
+def s3_dump_stats
+   s3_get_stats do |date, stat|
+      puts date
+      puts stat
+   end
+end
+
+#s3_dump_stats
+
+def s3_upload_xml(xml_body, dir_name)
+   s3_upload(xml_body, "xml/#{dir_name}/COMETCDC.xml")
+end
+
+def s3_upload_data(xml_body, dir_name)
+   data = xml_to_day_info(xml_body)
+   data_json = JSON.generate(data)
+   s3_upload(data_json, "daily/#{dir_name}/data.json")
+   s3_upload(data_json, "daily/current/data.json")
+end
+
+def s3_upload_stats
+   stats = []
+   s3_get_stats { |date, stat| stats.push stat }
+   s3_upload(JSON.generate(stats), "stats/stats.json")
+end
