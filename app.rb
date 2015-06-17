@@ -32,13 +32,13 @@ post '/xml_upload' do
       dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
 
       # upload xml
-      s3_upload_xml(body, dir_name)
+      upload_xml(body, dir_name)
 
       # generate daily/dir_name/data.json
-      s3_upload_data(body, dir_name)
+      upload_data(body, dir_name)
 
       # generate stats/stats.json
-#      s3_upload_stats
+      s3_upload_stats
 
       redirect '/'
    end

@@ -80,9 +80,18 @@ end
 # Local  #
 ##########
 
+def local_read_xml(xml_path)
+   Dir.glob("#{xml_path}/COMETCDC.xml") do |f|
+      if (f =~ /#{xml_path}\/(....)(..)(..)\/COMETCDC\.xml/)
+         date = "#{$1}/#{$2}/#{$3}"
+         yield date, xml_to_day_info(open(f).read)
+      end
+   end
+end
+
 def local_read_xmls(dir)
    Dir.glob("#{dir}/*/COMETCDC.xml") do |f|
-      if (f =~ /\.\.\/xml\/(....)(..)(..)\/COMETCDC\.xml/)
+      if (f =~ /#{dir}\/(....)(..)(..)\/COMETCDC\.xml/)
          date = "#{$1}/#{$2}/#{$3}"
          yield date, xml_to_day_info(open(f).read)
       end
@@ -241,11 +250,14 @@ end
 
 #s3_dump_stats
 
-def s3_upload_xml(xml_body, dir_name)
+###########
+# uplload xml/data/stat/stats
+###########
+def upload_xml(xml_body, dir_name)
    s3_upload(xml_body, "xml/#{dir_name}/COMETCDC.xml")
 end
 
-def s3_upload_data(xml_body, dir_name)
+def upload_data(xml_body, dir_name)
    data = xml_to_day_info(xml_body)
    data_json = JSON.generate(data)
    s3_upload(data_json, "daily/#{dir_name}/data.json")
@@ -255,5 +267,11 @@ end
 def s3_upload_stats
    stats = []
    s3_get_stats { |date, stat| stats.push stat }
+   s3_upload(JSON.generate(stats), "stats/stats.json")
+end
+
+def local_upload_stats
+   stats = []
+   local_get_stats { |date, stat| stats.push stat }
    s3_upload(JSON.generate(stats), "stats/stats.json")
 end
