@@ -34,15 +34,15 @@ post '/xml_upload' do
       upload(body, "xml/#{dir_name}/COMETCDC.xml")
 
       # generate daily/dir_name/data.json
-      data = get_info(path)
-      data_json = JSON.generate(data)
-      upload(data_json, "daily/#{dir_name}/data.json")
-      upload(data_json, "daily/current/data.json")
-
-      # generate stats/stats.json
-      stats = get_stats
-      stats_json = JSON.generate(stats)
-      upload(stats_json, "stats/stats.json")
+#      data = get_info(path)
+#      data_json = JSON.generate(data)
+#      upload(data_json, "daily/#{dir_name}/data.json")
+#      upload(data_json, "daily/current/data.json")
+#
+#      # generate stats/stats.json
+#      stats = get_stats
+#      stats_json = JSON.generate(stats)
+#      upload(stats_json, "stats/stats.json")
       
       redirect '/'
    end
