@@ -167,7 +167,7 @@ $(function () {
 
          if (legend_entry.length!=0) {
             // add legend   
-            
+
             var legend = frame.svg.append("g")
             .attr("x", width - 65)
             .attr("y", 25)
@@ -183,7 +183,7 @@ $(function () {
             .attr("width",100)
             .style("fill", function(d) { return d.stroke; })
             .text(function(d) { return d.label; });
-            
+
             frame.svg.append("g")
             .attr("x", width - 75)
             .attr("y", 25)
@@ -476,7 +476,7 @@ $(function () {
             var ydomain_tension = [0, d3.max(data, function (d) { return d.tens; })];
             svg_tension = append_svg("#menu_tension");
             frame_tension = make_frame(svg_tension, "wire_id", "tension (g)", xdomain_tension, ydomain_tension, {xaxis_type: "linear"});
-            
+
             labels = plotLayerSelection(data);
             first_call=false;
          }
@@ -487,7 +487,7 @@ $(function () {
          makeLine(frame_tension, "tension_limit_sense", [ { x:xmin, y: 55}, {x:xmax, y: 55} ]);
          makeLine(frame_tension, "tension_limit_field", [ { x:xmin, y: 72}, {x:xmax, y: 72} ]);
          makeLine(frame_tension, "tension_limit_field", [ { x:xmin, y: 88}, {x:xmax, y: 88} ]);
-         
+
          //console.log(layerCheckList);
          var data_select = _.filter(data, function(d) {
                //console.log(layerCheckList[d.layerID-1]);
@@ -899,3 +899,4 @@ $(function () {
                }
          });
    });
+});
