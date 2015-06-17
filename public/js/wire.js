@@ -838,8 +838,9 @@ $(function () {
             ResponseContentType: 'text/plain'
       */
 
-     var params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
-     var url = s3.getSignedUrl('getObject', params);
+     //var params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
+     //var url = s3.getSignedUrl('getObject', params);
+     var url = "http://133.1.141.121/~sakamoto/dial_gauge.csv"
      console.log("url");
      console.log(url);
      d3.csv(url, function(error, csv) {
