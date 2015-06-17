@@ -23,9 +23,9 @@ end
 
 post '/xml_upload' do 
    if params[:file]
-      path = params[:file][:filename]
-      basename = File.basename(path)
       body = params[:file][:tempfile].read
+      path = params[:file][:tempfile].path
+      basename = File.basename(path)
 
       today=Time.now
       dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
