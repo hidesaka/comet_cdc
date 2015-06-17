@@ -66,6 +66,11 @@ end
 #   end
 #end
 def get_entries
+   reds = JSON.load(File.read("secrets.json"))
+   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
+   Aws.config[:region] = "ap-northeast-1"
+   bucket="comet-cdc"
+   s3 = Aws::S3::Client.new
    s3.list_objects(bucket: bucket, prefix: "xml/").contents.each do |obj|
       if (obj.key =~ /xml\/(....)(..)(..)\/COMETCDC\.xml/)
          date = "#{$1}/#{$2}/#{$3}"
