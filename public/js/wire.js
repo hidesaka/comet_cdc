@@ -1,6 +1,23 @@
 $(function () {
       var debug=false;
 
+      // setup s3
+      var awsRegion = "us-east-1";
+      var cognitoParams = {
+         IdentityPoolId: "us-east-1:03c415f9-4328-419d-bade-f099e836ef6a"
+      };
+
+      AWS.config.region = awsRegion;
+      AWS.config.credentials = new AWS.CognitoIdentityCredentials(cognitoParams);
+      AWS.config.credentials.get(function(err) {
+            if (!err) {
+               console.log("Cognito Identity Id: " + AWS.config.credentials.identityId);
+            }
+      });
+      var s3BucketName = "comet-cdc";
+      var s3RegionName = "ap-northeast-1"
+      var s3 = new AWS.S3({params: {Bucket: s3BucketName, Region: s3RegionName}});
+
       var first_call=true;
       var first_call_hist={"sense":true, "field":true};
       var diam = 180;
@@ -799,8 +816,7 @@ $(function () {
          return data;
       };
 
-
-      var gauge_csv_params = {Bucket: 'comet-cdc', Key: 'csv/dial_gauge.csv'};
+      var gauge_csv_params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
       s3.getObject(gauge_csv_params, function(error, csv) {
             var i, j;
 
