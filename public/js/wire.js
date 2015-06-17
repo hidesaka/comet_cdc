@@ -18,6 +18,7 @@ $(function() {
       var s3RegionName = "ap-northeast-1"
       var s3 = new AWS.S3({params: {Bucket: s3BucketName, Region: s3RegionName}});
       var params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
+/*
       s3.getObject(params, function(err,data) {
             if (err) {
                console.log("error!!");
@@ -25,7 +26,8 @@ $(function() {
                console.log(data);
             }
       });
-      /*
+*/
+      
        s3.listObjects(function(err,data) {
              if (err=== null) {
                 jQuery.each(data.Contents, function(index, obj) {
@@ -36,6 +38,6 @@ $(function() {
                 });
              }
        });
-       */
+       
 
 });
