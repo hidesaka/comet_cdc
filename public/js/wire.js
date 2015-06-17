@@ -17,7 +17,6 @@ $(function () {
       var s3BucketName = "comet-cdc";
       var s3RegionName = "ap-northeast-1"
       var s3 = new AWS.S3({params: {Bucket: s3BucketName, Region: s3RegionName}});
-      var gauge_csv_params = {Bucket: s3BucketName, Key: 'csv/dial_gauge.csv'};
       console.log("=== s3 ====");
       console.log(s3);
       console.log("===========");
@@ -820,7 +819,11 @@ $(function () {
          return data;
       };
 
-      s3.getObject(gauge_csv_params, function(error, csv) {
+      s3.getObject(
+         {
+            Bucket: s3BucketName,
+            Key: 'csv/dial_gauge.csv'
+         }, function(error, csv) {
             var i, j;
 
             var gauge_data = read_gauge_csv(csv);
