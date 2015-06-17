@@ -841,6 +841,8 @@ $(function () {
             var i, j;
 
             var gauge_data = read_gauge_csv(csv);
+            console.log("gauge_data");
+            console.log(gauge_data);
             //gauge_data = _.take(gauge_data, 1);
             var xdomain_gauge = d3.extent(gauge_data, function(d) { return d.utime; });
             var ydomain_gauge = d3.extent(gauge_data, function(d) { return d.disp_um; });
