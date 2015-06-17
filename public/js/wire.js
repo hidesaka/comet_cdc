@@ -837,7 +837,7 @@ $(function () {
          {
             Bucket: s3BucketName,
             Key: 'csv/dial_gauge.csv',
-            ContentType: 'text/plain'
+            ResponseContentType: 'text/plain'
          }, function(error, csv) {
             var i, j;
 
