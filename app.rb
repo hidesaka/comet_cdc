@@ -40,13 +40,13 @@ post '/xml_upload' do
       #   f.write params[:file][:tempfile].read
       #end
       
-      upload(params[:file][:tempfile].read, "xml/#{dir_name}/COMETCDC.xml")
+      #upload(params[:file][:tempfile].read, "xml/#{dir_name}/COMETCDC.xml")
 
       # generate daily/dir_name/data.json
       #write_entry(dir_name)
-      data_json = get_info(params[:file][:tempfile])
-      upload(data_json, "daily/#{dir_name}/data.json")
-      upload(data_json, "daily/current/data.json")
+      #data_json = get_info(params[:file][:tempfile])
+      #upload(data_json, "daily/#{dir_name}/data.json")
+      #upload(data_json, "daily/current/data.json")
 
       # make link of current dir_name
       #FileUtils.rm("public/daily/current") if File.exists?("public/daily/current")
