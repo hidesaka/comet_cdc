@@ -33,7 +33,7 @@ post '/xml_upload' do
 
       data = make_daily_data(body)
       s3_write_json("xml/#{dir_name}/COMETCDC.xml", data)
-#      s3_write_daily_datum(date, date) # daily/20150611/data.json
+      s3_write_daily_datum(date, date) # daily/20150611/data.json
 #      s3_write_daily_stats(date, date) # daily/20150611/stat.json
 #      s3_write_stats(date) # stats/stats.json
 
