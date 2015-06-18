@@ -27,18 +27,17 @@ post '/xml_upload' do
       path = params[:file][:tempfile].path
       basename = File.basename(path)
 
-      ENV['TZ'] = 'Asia/Tokyo'
       today=Time.now
       dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
 
-      # upload xml
-      #upload_xml(body, dir_name)
+      #s3_upload(body, "xml/#{dir_name}/COMETCDC.xml")
+      daily_data_json = xml_to_daily_data_with_json(body)
+      #s3_upload(daily_data_json, "daily/#{dir_name}/data.json")
 
-      # generate daily/dir_name/data.json
-      upload_data(body, dir_name)
-
-      # generate stats/stats.json
-      s3_upload_stats
+      s3_read_daily_datum("daily", "
+      daily_stat_json = xml_to_daily_stat_with_json(body)
+      
+      s3_upload_stats # stats/stats.json
 
       redirect '/'
    end
