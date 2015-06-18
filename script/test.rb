@@ -119,17 +119,17 @@ def local_file_list(start_date, end_date)
    start_utime = Time.parse(start_date)
    end_utime   = Time.parse(end_date)
    
-   prev_date = "none"
+   prev_date_dir = "none"
    Dir.glob("#{$local_xml_dir}/*/COMETCDC.xml") do |f|
       if (f =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
          date_dir = "#{$1}#{$2}#{$3}"
          date = "#{$1}/#{$2}/#{$3}"
          utime = Time.parse(date)
          if (utime >= start_utime and utime <= end_utime)
-            a =  {path: f, date: date, date_dir: date_dir, prev_date: prev_date}
+            a =  {path: f, date: date, date_dir: date_dir, prev_date_dir: prev_date_dir}
             yield a
-            prev_date = date
          end
+         prev_date_dir = date_dir
       end
    end
 end
@@ -163,10 +163,11 @@ end
 def local_write_daily_stats(start_date, end_date)
    local_file_list(start_date, end_date) do |a|
       puts a
-      #puts "path -> #{a[:path]}"
-      #puts "date -> #{a[:date]}"
-      #puts "date_dir -> #{a[:date_dir]}"
-      prev_stat = local_read_json("#{$local_daily_dir}/#{a[:date_dir]}/stat.json")
+      puts "path -> #{a[:path]}"
+      puts "date -> #{a[:date]}"
+      puts "date_dir -> #{a[:date_dir]}"
+      puts "prev_date_dir -> #{a[:prev_date_dir]}"
+      prev_stat = local_read_json("#{$local_daily_dir}/#{a[:prev_date_dir]}/stat.json")
       daily_data = local_read_json("#{$local_daily_dir}/#{a[:date_dir]}/data.json")
 
       stat = make_stat(a[:date], prev_stat, daily_data)
@@ -196,7 +197,7 @@ def s3_file_list(start_date, end_date)
    Aws.config[:region] = "ap-northeast-1"
    s3 = Aws::S3::Client.new
 
-   prev_date = "none"
+   prev_date_dir = "none"
    s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
       if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
          date_dir = "#{$1}#{$2}#{$3}"
@@ -208,10 +209,10 @@ def s3_file_list(start_date, end_date)
          url = object.presigned_url(:get)
          #puts "presigned_utr -> #{obj.presigned_url(:get, expires_in: 3600)}"
          if (utime >= start_utime and utime <= end_utime) 
-            a =  {path: url, date: date, date_dir: date_dir, prev_date: prev_date}
+            a =  {path: url, date: date, date_dir: date_dir, prev_date_dir: prev_date_dir}
             yield a
-            prev_date = date
          end
+         prev_date_dir = date_dir
       end
    end
 end
@@ -266,7 +267,7 @@ def s3_write_daily_stats(start_date, end_date)
       #puts "path -> #{a[:path]}"
       #puts "date -> #{a[:date]}"
       #puts "date_dir -> #{a[:date_dir]}"
-      prev_stat = s3_read_json("#{$s3_daily_dir}/#{a[:date_dir]}/stat.json")
+      prev_stat = s3_read_json("#{$s3_daily_dir}/#{a[:prev_date_dir]}/stat.json")
       daily_data = s3_read_json("#{$s3_daily_dir}/#{a[:date_dir]}/data.json")
 
       stat = make_stat(a[:date], prev_stat, daily_data)
