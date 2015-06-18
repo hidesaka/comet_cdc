@@ -254,7 +254,7 @@ def s3_write_daily_datum(start_date, end_date)
       puts "path -> #{a[:path]}"
       puts "date -> #{a[:date]}"
       puts "date_dir -> #{a[:date_dir]}"
-      ata = make_daily_data(open(a[:path]).read)
+      data = make_daily_data(open(a[:path]).read)
       p data
       s3_write_json("#{$s3_daily_dir}/#{a[:date_dir]}/data.json", data)
    end
