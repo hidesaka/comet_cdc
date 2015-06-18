@@ -216,6 +216,15 @@ def s3_file_list(start_date, end_date)
    end
 end
 
+def s3_write(key, obj)
+   creds = JSON.load(File.read("secrets.json"))
+   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
+   Aws.config[:region] = "ap-northeast-1"
+   s3 = Aws::S3::Client.new
+   key = key.gsub(/\/+/,'/')
+   s3.put_object(bucket: "comet-cdc", body: obj, key: key)
+end
+
 def s3_write_json(key, obj)
    creds = JSON.load(File.read("secrets.json"))
    Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
