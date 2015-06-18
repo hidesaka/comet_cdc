@@ -56,5 +56,6 @@ get '/xml_list' do
    s3_file_list("2015/05/26","2018/01/01") do |a|
       msg.push "#{a[:date]}<br/>"
    end
+   p msg
    msg.join()
 end
