@@ -29,15 +29,12 @@ post '/xml_upload' do
 
       today=Time.now
       dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
+      date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
 
-      #s3_upload(body, "xml/#{dir_name}/COMETCDC.xml")
-      daily_data_json = xml_to_daily_data_with_json(body)
-      #s3_upload(daily_data_json, "daily/#{dir_name}/data.json")
-
-      s3_read_daily_datum("daily", "
-      daily_stat_json = xml_to_daily_stat_with_json(body)
-      
-      s3_upload_stats # stats/stats.json
+      s3_write_json("xml/#{dir_name}/COMETCDC.xml", body)
+#      s3_write_daily_datum(date, date) # daily/20150611/data.json
+#      s3_write_daily_stats(date, date) # daily/20150611/stat.json
+#      s3_write_stats(date) # stats/stats.json
 
       redirect '/'
    end
