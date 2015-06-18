@@ -10,8 +10,10 @@ require 'open-uri'
 
 $local_xml_dir="../xml"
 $local_daily_dir="../daily"
+$local_stats_dir="../stats"
 $s3_xml_dir="xml/"
 $s3_daily_dir="daily/"
+$s3_stats_dir="stats/"
 
 ENV['TZ'] = 'Asia/Tokyo'
 
@@ -171,6 +173,16 @@ def local_write_daily_stats(start_date, end_date)
    end
 end
 
+def local_write_stats(end_date)
+   stats = []
+   local_file_list("20150526", end_date) do |a|
+      puts a
+      stat = local_read_json("#{$local_daily_dir}/#{a[:date_dir]}/stat.json")
+      stats.push stat
+   end
+   local_write_json("#{$local_stats_dir}/stats.json", stats)
+end
+
 #########
 #  S3   #
 #########
@@ -249,6 +261,16 @@ def s3_write_daily_stats(start_date, end_date)
       stat = make_stat(a[:date], prev_stat, daily_data)
       s3_write_json("#{$s3_daily_dir}/#{a[:date_dir]}/stat.json", stat)
    end
+end
+
+def s3_write_stats(end_date)
+   stats = []
+   s3_file_list("20150526", end_date) do |a|
+      puts a
+      stat = s3_read_json("#{$s3_daily_dir}/#{a[:date_dir]}/stat.json")
+      stats.push stat
+   end
+   s3_write_json("#{$s3_stats_dir}/stats.json", stats)
 end
 
 USAGE=<<END
