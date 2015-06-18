@@ -30,8 +30,10 @@ post '/xml_upload' do
       today=Time.now
       dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
       date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
+      console.log("dir_name -> " + dir_name)
+      console.log("date -> " + date)
 
-      s3_write_json("xml/#{dir_name}/COMETCDC.xml", body)
+#      s3_write_json("xml/#{dir_name}/COMETCDC.xml", body)
 #      s3_write_daily_datum(date, date) # daily/20150611/data.json
 #      s3_write_daily_stats(date, date) # daily/20150611/stat.json
 #      s3_write_stats(date) # stats/stats.json

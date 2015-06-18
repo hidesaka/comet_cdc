@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 
-require 'json'
 require 'pp'
-require 'xml'
 require 'time'
-require 'fileutils'
-require 'aws-sdk'
 require 'open-uri'
+require 'json'
+require 'fileutils'
+
+require 'aws-sdk'
+require 'libxml'
 
 $local_xml_dir="../xml"
 $local_daily_dir="../daily"
