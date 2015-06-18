@@ -864,7 +864,7 @@ $(function () {
                      var url = s3.getSignedUrl('getObject', params);
                      //console.log("obj.Key " + obj.Key);
                      //console.log("url " + url);
-                     if (obj.Key!="csv/dial_gauge.csv") {
+                     if (obj.Key=="csv/dial_gauge.csv") {
 
                         d3.csv(url, function(error, csv) {
                               var i, j;
