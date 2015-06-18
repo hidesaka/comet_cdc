@@ -53,8 +53,8 @@ end
 
 get '/xml_list' do 
    msg=[]
-   get_entries do |date, datum|
-      msg.push "date #{date}<br/>"
+   s3_file_list("2015/05/26","2018/01/01") do |a|
+      msg.push "#{a[:date]}<br/>"
    end
    msg.join()
 end
