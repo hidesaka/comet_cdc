@@ -38,8 +38,8 @@ post '/xml_upload' do
 #      s3_write_daily_stats(date, date) # daily/20150611/stat.json
 #      s3_write_stats(date) # stats/stats.json
 
-      redirect '/'
    end
+   redirect '/'
 end
 
 post '/csv_upload' do 
