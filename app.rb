@@ -47,6 +47,8 @@ post '/xml_upload' do
       rescue => err
          return err.message
       end
+   else
+      return "params[:file] is null"
    end
 end
 
