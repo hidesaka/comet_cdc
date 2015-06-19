@@ -1,0 +1,12 @@
+/Users/sakamoto/.rbenv/versions/2.2.0-dev/bin/ruby -r ./siteconf20150620-28005-1h8l36m.rb extconf.rb 
+creating Makefile
+
+make "DESTDIR=" clean
+
+make "DESTDIR="
+compiling mapper.cpp
+compiling rubymain.cpp
+linking shared-object fastfilereaderext.bundle
+
+make "DESTDIR=" install
+/usr/local/bin/ginstall -c -m 0755 fastfilereaderext.bundle ./.gem.20150620-28005-1cg53od
