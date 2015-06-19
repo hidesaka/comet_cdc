@@ -56,8 +56,9 @@ post '/csv_upload' do
          s3_write("csv/#{basename}", body)
          return "success, file size was #{params[:file][:tempfile].size}"
       end
+   else
+      return "params[:file] is null"
    end
-   return "params[:file] is null"
 end
 
 
