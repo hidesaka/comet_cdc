@@ -1,8 +1,7 @@
 function upload(name, url) {
-   $(name + " #progress_bar").attr("value", 0);
-   $(name + " #progress_bar").hide();
    $(name + " #progress_msg").html("");
 
+   $(name + " #progress_bar").attr("value", 0);
    $(name + " #progress_bar").show();
    $form = $(name);
    fd = new FormData($form[0]);
