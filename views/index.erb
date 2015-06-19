@@ -81,21 +81,27 @@
             </p>
          </div>
          <div class="tab-pane fade" id="menu_upload">
+            <p>
             COMETCDC.xml
             <form class="form-inline" id="upload-form" method="post" enctype="multipart/form-data">
                <div class="form-group">
-                  <input id="upload-form-file" name="file" size="27" type="file" accept="*xml"/>
+                  <input id="upload-form-file" name="file" size="20" type="file" accept="*xml"/>
                </div>
-               <button type="button" class="btn btn-primary" onClick="return upload(this);">Upload</button>
-               <progress id="progress_bar" value="0" max="100"></progress>
-               <span id="progress_msg" style="display:none;"></span>
+               <button type="button" class="btn btn-primary" onClick="return upload(this, '/xml_upload');">Upload</button>
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
             </form>
+            </p>
 
             <p>
-            <form action="/csv_upload" method="post" enctype="multipart/form-data">
-               dial_gauge.csv / tension_bar.csv
-               <input id="file-csv" name="file" class="file-loading" type="file" multiple data-min-file-count="1" showPreview="false">
-               <script src="js/file-csv.js"></script>
+            dial_gauge.csv / tension_bar.csv
+            <form class="form-inline" id="upload-form" method="post" enctype="multipart/form-data">
+               <div class="form-group">
+                  <input id="upload-form-file" name="file" size="20" type="file" accept="*csv"/>
+               </div>
+               <button type="button" class="btn btn-primary" onClick="return upload(this, '/csv_upload');">Upload</button>
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
             </form>
             </p>
 
