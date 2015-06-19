@@ -8,10 +8,6 @@ require 'fileutils'
 require 'aws-sdk'
 require 'json'
 
-creds = JSON.load(File.read("secrets.json"))
-Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
-Aws.config[:region] = "ap-northeast-1"
-
 def upload (body, key)
    s3 = Aws::S3::Client.new
    s3.put_object(bucket: "comet-cdc", body: body, key: key)
@@ -46,7 +42,7 @@ post '/xml_upload' do
          redirect '/'
 
       rescue => err
-         err_msg = Rack::Utils.escape(err.message)
+         err_msg = Rack::Utils.escape_html(Rack::Utils.escape(err.message))
          puts err_msg
          redirect to("/err/#{err_msg}")
       end
