@@ -1,10 +1,10 @@
-function upload(form) {
+function upload(form, url) {
    $("#progress_bar").show();
    $form = $('#upload-form');
    fd = new FormData($form[0]);
    $.ajax(
       {
-         url: '/xml_upload',
+         url: url,
          type: 'post',
          processData: false,
          contentType: false,
