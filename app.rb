@@ -41,17 +41,13 @@ post '/xml_upload' do
             s3_write_daily_datum(date, date) # daily/20150611/data.json
             s3_write_daily_stats(date, date) # daily/20150611/stat.json
             s3_write_stats(date) # stats/stats.json
+            return "success"
          end
 
-         redirect '/'
-
       rescue => err
-         err_msg = Rack::Utils.escape_html(Rack::Utils.escape(err.message))
-         puts err_msg
-         redirect to("/err/#{err_msg}")
+         return err.message
       end
    end
-   redirect '/err/no xml file'
 end
 
 post '/csv_upload' do 
