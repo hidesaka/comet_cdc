@@ -66,7 +66,6 @@ def get_last_date(now_utime_sec, num_wires, num_ave)
 end
 
 def make_daily_data(xml_contents)
-   return
    doc = XML::Document.string(xml_contents)
 
    datum=[]
@@ -87,6 +86,7 @@ def make_daily_data(xml_contents)
    end
 
    datum
+   GC.start
 end
 
 def make_stat(date, prev_stat, daily_data)
