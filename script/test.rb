@@ -265,9 +265,10 @@ end
 def s3_write_daily_stats(start_date, end_date)
    s3_file_list(start_date, end_date) do |a|
       puts a
-      #puts "path -> #{a[:path]}"
-      #puts "date -> #{a[:date]}"
-      #puts "date_dir -> #{a[:date_dir]}"
+      puts "path -> #{a[:path]}"
+      puts "date -> #{a[:date]}"
+      puts "date_dir -> #{a[:date_dir]}"
+      puts "prev_date_dir -> #{a[:prev_date_dir]}"
       prev_stat = s3_read_json("#{$s3_daily_dir}/#{a[:prev_date_dir]}/stat.json")
       daily_data = s3_read_json("#{$s3_daily_dir}/#{a[:date_dir]}/data.json")
 
