@@ -1,11 +1,11 @@
 $("#file-xml").fileinput({
    mainClass: "input_group",
-//   showPreview: false,
-   showPreview: true,
+   showPreview: false,
+   //showPreview: true,
    showCaption: true,
    allowedFileExtensions: ["xml"],
    msgValidationError: "Select xml file",
-   /*
+   
    layoutTemplates: {
       main1: "<div class=\'input-group {class}\'>\n" +
          "   <div class=\'input-group-btn\'>\n" +
@@ -21,5 +21,4 @@ $("#file-xml").fileinput({
                   '</div>'
 
    }
-   */
 });
