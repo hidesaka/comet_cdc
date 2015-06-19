@@ -17,7 +17,6 @@ alert("start uploading");
                XHR.upload.addEventListener('progress',function(e) {
                      progre = parseInt(e.loaded/e.total*10000)/100 ;
                         console.log(progre+"%") ;
-                        $("#progress_bar").width(parseInt(progre/100*300*100)/100+"px");
                            $("#progress_msg").height("30px");
                            $("#progress_msg").html(progre+"%");
                            $("#progress_bar").attr("value", progre);
