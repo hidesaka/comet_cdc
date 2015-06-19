@@ -1,6 +1,6 @@
-function upload(form, url) {
-   $("#progress_bar").show();
-   $form = $('#upload-form');
+function upload(name, url) {
+   $(name + " #progress_bar").show();
+   $form = $(name);
    fd = new FormData($form[0]);
    $.ajax(
       {
@@ -20,9 +20,9 @@ function upload(form, url) {
                XHR.upload.addEventListener('progress',function(e) {
                      progre = parseInt(e.loaded/e.total*10000)/100 ;
                         console.log(progre+"%") ;
-                           $("#progress_msg").height("30px");
-                           $("#progress_msg").html(progre+"%");
-                           $("#progress_bar").attr("value", progre);
+                           $(name + " #progress_msg").height("30px");
+                           $(name + " #progress_msg").html(progre+"%");
+                           $(name + " #progress_bar").attr("value", progre);
                      }, false); 
                   }
                   return XHR;
