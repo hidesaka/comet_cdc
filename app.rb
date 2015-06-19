@@ -17,8 +17,8 @@ def upload (body, key)
    s3.put_object(bucket: "comet-cdc", body: body, key: key)
 end
 
-get '/err/:message' do |msg|
-   @err_msg = msg
+get '/err/' do |msg|
+   @err_msg = "error"
    erb :err
 end
 
