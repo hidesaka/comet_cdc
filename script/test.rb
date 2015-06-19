@@ -66,6 +66,7 @@ def get_last_date(now_utime_sec, num_wires, num_ave)
 end
 
 def make_daily_data(xml_contents)
+   return
    doc = XML::Document.string(xml_contents)
 
    datum=[]
@@ -155,9 +156,7 @@ def local_write_daily_datum(start_date, end_date)
       #puts "path -> #{a[:path]}"
       #puts "date -> #{a[:date]}"
       #puts "date_dir -> #{a[:date_dir]}"
-#      data = make_daily_data(File.open(a[:path]).read) #  => This increase memory_total 384 MB
-      f = File.open(a[:path]).read
-      data = make_daily_data(f)
+      data = make_daily_data(File.open(a[:path]).read) #  => This increase memory_total 384 MB
 #      local_write_json("#{$local_daily_dir}/#{a[:date_dir]}/data.json", data)
 #      local_write_json("#{$local_daily_dir}/current/data.json", data)
    end
