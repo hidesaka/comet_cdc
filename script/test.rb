@@ -191,7 +191,7 @@ end
 #########
 $s3 = nil
 def s3_setup
-   unless s3
+   unless $s3
       creds = JSON.load(File.open("secrets.json"){|f| f.read} )
       Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
       Aws.config[:region] = "ap-northeast-1"
