@@ -26,8 +26,8 @@ post '/xml_upload' do
          path = params[:file][:tempfile].path
          basename = File.basename(path)
 
-         #today = Time.now
-         today = Time.local(2015,6,19)
+         today = Time.now
+         #today = Time.local(2015,6,19)
          dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
          date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
 
