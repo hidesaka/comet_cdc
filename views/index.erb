@@ -82,10 +82,12 @@
          </div>
          <div class="tab-pane fade" id="menu_upload">
             <p>
-            COMETCDC.xml
-            <input type="file" id="fileToUpload"></input>
-            <input type="submit"></input>
-            <div id="progressbar-xml"></div>
+            <form action="/xml_upload" method="post" enctype="multipart/form-data">
+               COMETCDC.xml
+               <input type="file" id="xmlToUpload"></input>
+               <button id="upload_btn-xml"></button>
+               <div id="progressbar-xml"></div>
+            </form>
             </p>
 
             <p>
