@@ -85,13 +85,8 @@
             <form id="upload-form" method="post" enctype="multipart/form-data" onSubmit="return upload(this);">
                COMETCDC.xml
                <input id="upload-form-file" name="userfile" size="27" type="file" accept="*xml"/>
-               <br />
-               <br />
                <input type="submit" name="submit" value="OK" />
-               <script>
-                  $("#progressbar-xml").progressbar();
-                  $("#progressbar-xml").hide();
-               </script>
+               <div id="progress_bar"></div>
             </form>
             </p>
 
