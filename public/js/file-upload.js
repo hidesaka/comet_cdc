@@ -1,5 +1,5 @@
 function upload(form) {
-alert("start uploading");
+   $("#progress_bar").show();
    $form = $('#upload-form');
    fd = new FormData($form[0]);
    $.ajax(
@@ -10,7 +10,10 @@ alert("start uploading");
          contentType: false,
          data: fd,
          dateType: 'json',
-         success: function(data) { console.log(data); },
+         success: function(data) { 
+            $("#progress_bar").hide();
+            console.log(data); 
+         },
          xhr : function(){
             XHR = $.ajaxSettings.xhr();
             if (XHR.upload){
