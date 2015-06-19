@@ -1,4 +1,5 @@
 function upload(name, url) {
+   alert("uploading");
    $(name + " #progress_msg").html("");
 
    $(name + " #progress_bar").attr("value", 0);
