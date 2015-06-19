@@ -86,12 +86,9 @@
                <div class="form-group">
                   <input id="upload-form-file" name="file" size="27" type="file" accept="*xml"/>
                </div>
-               <div class="form-group">
-               <input type="submit" name="submit" value="submit" />
-               </div>
                <button type="button" class="btn btn-primary" onClick="return upload(this);">Upload</button>
                <progress id="progress_bar" value="0" max="100"></progress>
-               <span id="progress_msg"></span>
+               <span id="progress_msg" style="display:none;"></span>
             </form>
 
             <p>
