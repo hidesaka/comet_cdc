@@ -1,6 +1,7 @@
 $("#file-xml").fileinput({
    mainClass: "input_group",
-   showPreview: false,
+//   showPreview: false,
+   showPreview: true,
    showCaption: true,
    allowedFileExtensions: ["xml"],
    msgValidationError: "Select xml file",
