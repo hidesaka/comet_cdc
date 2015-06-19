@@ -4,23 +4,15 @@ function showProgress(evt) {
       $('#progressbar-xml').progressbar("option", "value", percentComplete );
    }  
 }
-
-$("#xml_upload").on("change", 'input[type="file"]', function(e) {
-      e.preventDefault();
-      var formData = new FormData();
-      var files = this.files;
-      $.each(files, function(i, file){
-            formData.append('file', file);
-      });
+$('#xml_upload').submit(function() {
+      var fd = new FormData($('#xml_upload').get(0));
       $.ajax({
-            url: '/xml_upload',
-            type: 'post',
-            data: formData,
+            url: "/xml_upload",
+            type: "POST",
+            data: fd,
             processData: false,
             contentType: false,
-            dataType: 'html',
-            complete: function(){},
-            success: function(res) {}
+            dataType: 'json'
             xhr: function() {
                myXhr = $.ajaxSettings.xhr();
                if (myXhr.upload){
@@ -31,4 +23,8 @@ $("#xml_upload").on("change", 'input[type="file"]', function(e) {
                return myXhr;
             }
       })
+      .done(function( data ) {
+            $('#result').text(data.width + "x" + data.height);
+      });
+      return false;
 });
