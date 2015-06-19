@@ -5,6 +5,7 @@ gem 'sinatra'
 gem 'sinatra-contrib'
 gem 'libxml-ruby'
 gem 'aws-sdk'
+gem 'eventmachine'
 
 # gem "rails"
 #
