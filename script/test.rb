@@ -86,7 +86,6 @@ def make_daily_data(xml_contents)
    end
 
    datum
-   GC.start
 end
 
 def make_stat(date, prev_stat, daily_data)
@@ -157,8 +156,9 @@ def local_write_daily_datum(start_date, end_date)
       #puts "date -> #{a[:date]}"
       #puts "date_dir -> #{a[:date_dir]}"
       data = make_daily_data(File.open(a[:path]).read) #  => This increase memory_total 384 MB
-#      local_write_json("#{$local_daily_dir}/#{a[:date_dir]}/data.json", data)
-#      local_write_json("#{$local_daily_dir}/current/data.json", data)
+      local_write_json("#{$local_daily_dir}/#{a[:date_dir]}/data.json", data)
+      local_write_json("#{$local_daily_dir}/current/data.json", data)
+      GC.start
    end
 end
 
