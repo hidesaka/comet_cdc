@@ -11,7 +11,7 @@ function upload(name, url) {
          data: fd,
          dateType: 'json',
          success: function(data) { 
-            $("#progress_bar").hide();
+            $(name + " #progress_bar").hide();
             console.log(data); 
          },
          xhr : function(){
