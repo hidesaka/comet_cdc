@@ -142,7 +142,7 @@ end
 
 def local_read_json(fname)
    return [] if not File.exist?(fname)
-   JSON.parse(File.open(fname).read, :symbolize_names => true)
+   JSON.parse(File.open(fname) { |f| f.read }, :symbolize_names => true)
 end
 
 def local_dump_json(fname)
@@ -155,7 +155,7 @@ def local_write_daily_datum(start_date, end_date)
       #puts "path -> #{a[:path]}"
       #puts "date -> #{a[:date]}"
       #puts "date_dir -> #{a[:date_dir]}"
-      data = make_daily_data(File.open(a[:path]).read) #  => This increase memory_total 384 MB
+      data = make_daily_data(File.open(a[:path]) { |f| f.read } ) #  => This increase memory_total 384 MB
       local_write_json("#{$local_daily_dir}/#{a[:date_dir]}/data.json", data)
       local_write_json("#{$local_daily_dir}/current/data.json", data)
    end
@@ -189,23 +189,34 @@ end
 #########
 #  S3   #
 #########
+$s3 = nil
+def s3_setup
+   unless s3
+      creds = JSON.load(File.open("secrets.json"){|f| f.read} )
+      Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
+      Aws.config[:region] = "ap-northeast-1"
+      $s3 = Aws::S3::Client.new
+   end
+end
+$s3_res = nil
+def s3_res_setup
+   $s3_res = Aws::S3::Resource.new(region: 'ap-northeast-1')
+end
+
 def s3_file_list(start_date, end_date)
    start_utime = Time.parse(start_date)
    end_utime   = Time.parse(end_date)
 
-   creds = JSON.load(File.read("secrets.json"))
-   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
-   Aws.config[:region] = "ap-northeast-1"
-   s3 = Aws::S3::Client.new
+   s3_setup
 
    prev_date_dir = "none"
-   s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
+   $s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
       if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
          date_dir = "#{$1}#{$2}#{$3}"
          date = "#{$1}/#{$2}/#{$3}"
          utime = Time.parse(date)
-         s3_res = Aws::S3::Resource.new(region: 'ap-northeast-1')
-         bucket = s3_res.bucket("comet-cdc")
+         s3_res_setup
+         bucket = $s3_res.bucket("comet-cdc")
          object = bucket.object(obj.key)
          url = object.presigned_url(:get)
          #puts "presigned_utr -> #{obj.presigned_url(:get, expires_in: 3600)}"
@@ -219,32 +230,26 @@ def s3_file_list(start_date, end_date)
 end
 
 def s3_write(key, obj)
-   creds = JSON.load(File.read("secrets.json"))
-   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
-   Aws.config[:region] = "ap-northeast-1"
-   s3 = Aws::S3::Client.new
+   s3_setup
+
    key = key.gsub(/\/+/,'/')
-   s3.put_object(bucket: "comet-cdc", body: obj, key: key)
+   $s3.put_object(bucket: "comet-cdc", body: obj, key: key)
 end
 
 def s3_write_json(key, obj)
-   creds = JSON.load(File.read("secrets.json"))
-   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
-   Aws.config[:region] = "ap-northeast-1"
-   s3 = Aws::S3::Client.new
+   s3_setup
+
    key = key.gsub(/\/+/,'/')
-   s3.put_object(bucket: "comet-cdc", body: obj2json(obj), key: key)
+   $s3.put_object(bucket: "comet-cdc", body: obj2json(obj), key: key)
    puts "s3_write_json done #{key}"
 end
 
 def s3_read_json(key)
-   creds = JSON.load(File.read("secrets.json"))
-   Aws.config[:credentials] = Aws::Credentials.new(creds["AccessKeyId"], creds["SecretAccessKey"])
-   Aws.config[:region] = "ap-northeast-1"
-   s3 = Aws::S3::Client.new
+   s3_setup
+
    key = key.gsub(/\/+/,'/')
    puts "s3_read_json key -> #{key}"
-   body = s3.get_object(bucket: "comet-cdc", key: key).body.read
+   body = $s3.get_object(bucket: "comet-cdc", key: key).body.read
    JSON.parse(body, :symbolize_names => true)
 end
 
@@ -258,7 +263,7 @@ def s3_write_daily_datum(start_date, end_date)
       #puts "path -> #{a[:path]}"
       #puts "date -> #{a[:date]}"
       #puts "date_dir -> #{a[:date_dir]}"
-      data = make_daily_data(open(a[:path]).read)
+      data = make_daily_data(open(a[:path]) { |f| f.read } )
       s3_write_json("#{$s3_daily_dir}/#{a[:date_dir]}/data.json", data)
       s3_write_json("#{$s3_daily_dir}/current/data.json", data)
    end
@@ -276,6 +281,7 @@ def s3_write_daily_stats(start_date, end_date)
 
       stat = make_stat(a[:date], prev_stat, daily_data)
       s3_write_json("#{$s3_daily_dir}/#{a[:date_dir]}/stat.json", stat)
+      s3_write_json("#{$s3_daily_dir}/current/stat.json", stat)
    end
 end
 
