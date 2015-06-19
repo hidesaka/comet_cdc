@@ -234,6 +234,7 @@ def s3_write_json(key, obj)
    s3 = Aws::S3::Client.new
    key = key.gsub(/\/+/,'/')
    s3.put_object(bucket: "comet-cdc", body: obj2json(obj), key: key)
+   puts "s3_write_json done #{key}"
 end
 
 def s3_read_json(key)
@@ -242,6 +243,7 @@ def s3_read_json(key)
    Aws.config[:region] = "ap-northeast-1"
    s3 = Aws::S3::Client.new
    key = key.gsub(/\/+/,'/')
+   puts "s3_read_json key -> #{key}"
    body = s3.get_object(bucket: "comet-cdc", key: key).body.read
    JSON.parse(body, :symbolize_names => true)
 end
