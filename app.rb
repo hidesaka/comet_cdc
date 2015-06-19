@@ -18,6 +18,7 @@ def upload (body, key)
 end
 
 get '/err/:message' do |msg|
+   puts "/err/:message is called (msg = #{msg})"
    @err_msg = msg
    erb :err
 end
