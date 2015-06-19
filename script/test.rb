@@ -158,7 +158,6 @@ def local_write_daily_datum(start_date, end_date)
       data = make_daily_data(File.open(a[:path]).read) #  => This increase memory_total 384 MB
       local_write_json("#{$local_daily_dir}/#{a[:date_dir]}/data.json", data)
       local_write_json("#{$local_daily_dir}/current/data.json", data)
-      GC.start
    end
 end
 
