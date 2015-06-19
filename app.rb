@@ -49,11 +49,13 @@ end
 
 post '/csv_upload' do 
    if params[:file]
-      path = params[:file][:filename]
-      basename = File.basename(path)
-      body = params[:file][:tempfile].read
-      s3_write("csv/#{basename}", body)
-      return "success, file size was #{params[:file][:tempfile].size}"
+      fork do
+         path = params[:file][:filename]
+         basename = File.basename(path)
+         body = params[:file][:tempfile].read
+         s3_write("csv/#{basename}", body)
+         return "success, file size was #{params[:file][:tempfile].size}"
+      end
    end
    return "params[:file] is null"
 end
