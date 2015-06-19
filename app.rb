@@ -41,7 +41,7 @@ post '/xml_upload' do
             s3_write_daily_datum(date, date) # daily/20150611/data.json
             s3_write_daily_stats(date, date) # daily/20150611/stat.json
             s3_write_stats(date) # stats/stats.json
-            return "success"
+            return "success, file size is #{params[:file][:tempfile].size}"
          end
 
       rescue => err
