@@ -7,6 +7,7 @@ require 'fileutils'
 
 require 'aws-sdk'
 require 'json'
+require 'eventmachine'
 
 def upload (body, key)
    s3 = Aws::S3::Client.new
