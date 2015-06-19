@@ -10,7 +10,7 @@ alert("start uploading");
          contentType: false,
          data: fd,
          dateType: 'json',
-         success: function() { console.log("sucess"); },
+         success: function(data) { console.log(data); },
          xhr : function(){
             XHR = $.ajaxSettings.xhr();
             if (XHR.upload){
