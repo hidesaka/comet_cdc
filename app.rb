@@ -17,6 +17,11 @@ def upload (body, key)
    s3.put_object(bucket: "comet-cdc", body: body, key: key)
 end
 
+get '/err/:message' do |msg|
+   @err_msg = msg
+   erb :err
+end
+
 get '/' do 
    erb :index
 end
@@ -36,8 +41,9 @@ post '/xml_upload' do
       s3_write_daily_stats(date, date) # daily/20150611/stat.json
       s3_write_stats(date) # stats/stats.json
 
+      redirect '/'
    end
-   redirect '/'
+   redirect '/err/no_xml_file'
 end
 
 post '/csv_upload' do 
@@ -56,6 +62,5 @@ get '/xml_list' do
    s3_file_list("2015/05/26","2018/01/01") do |a|
       msg.push "#{a[:date]}<br/>"
    end
-   p msg
    msg.join()
 end
