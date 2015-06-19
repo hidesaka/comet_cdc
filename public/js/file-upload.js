@@ -12,7 +12,6 @@ $('#xml_upload').submit(function() {
             data: fd,
             processData: false,
             contentType: false,
-            dataType: 'json'
             xhr: function() {
                myXhr = $.ajaxSettings.xhr();
                if (myXhr.upload){
