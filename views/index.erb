@@ -82,10 +82,10 @@
          </div>
          <div class="tab-pane fade" id="menu_upload">
             <p>
-            <form action="/xml_upload" method="post" enctype="multipart/form-data">
+            <form id="xml_upload" action="">
                COMETCDC.xml
-               <input type="file" id="xmlToUpload"></input>
-               <button id="upload_btn-xml">submit</button>
+               <input type="file" name="hogeFile">
+               <input type="submit" value="send">
                <div id="progressbar-xml"></div>
             </form>
             </p>
