@@ -1,29 +1,16 @@
-function showProgress(evt) {
-   if (evt.lengthComputable) {
-      var percentComplete = (evt.loaded / evt.total) * 100;
-      $('#progressbar-xml').progressbar("option", "value", percentComplete );
-   }  
+function upload(form) {
+   $form = $('#upload-form');
+   fd = new FormData($form[0]);
+   $.ajax(
+      {
+         url: '/xml_upload',
+         type: 'post',
+         processData: false,
+         contentType: false,
+         data: fd,
+         success: function() {
+            console.log("sucess");
+         }
+   });
+   return false;
 }
-$('#xml_upload').submit(function() {
-      var fd = new FormData($('#xml_upload').get(0));
-      $.ajax({
-            url: "/xml_upload",
-            type: "POST",
-            data: fd,
-            processData: false,
-            contentType: false,
-            xhr: function() {
-               myXhr = $.ajaxSettings.xhr();
-               if (myXhr.upload){
-                  myXhr.upload.addEventListener('progress',showProgress, false);
-               } else {
-                  console.log("Uploadress is not supported.");
-               }
-               return myXhr;
-            }
-      })
-      .done(function( data ) {
-            $('#result').text(data.width + "x" + data.height);
-      });
-      return false;
-});
