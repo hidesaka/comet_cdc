@@ -751,7 +751,7 @@ $(function () {
 
                      d3.json(url, function(error, dailies) {
 
-                           //console.log(json);
+                           console.log(dailies);
 
                            var xdomain =  _.map(dailies, function(d) { return d.days; });
                            var ydomain_sum = [0, d3.max(dailies, function(d) { return d.num_sum; })];
