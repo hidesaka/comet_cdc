@@ -19,10 +19,12 @@ function upload(name, url) {
             if (XHR.upload){
                XHR.upload.addEventListener('progress',function(e) {
                      progre = parseInt(e.loaded/e.total*10000)/100 ;
+                        /*
                         console.log(progre+"%") ;
                            $(name + " #progress_msg").height("30px");
                            $(name + " #progress_msg").html(progre+"%");
                            $(name + " #progress_bar").attr("value", progre);
+                           */
                      }, false); 
                   }
                   return XHR;
