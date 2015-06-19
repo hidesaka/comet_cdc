@@ -46,8 +46,8 @@ post '/xml_upload' do
 
          redirect '/'
 
-      rescue => err_msg
-         redirect "/err/#{err_msg}"
+      rescue => err
+         redirect "/err/#{err.message}"
       end
    end
    redirect '/err/no xml file'
