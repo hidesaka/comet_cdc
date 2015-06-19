@@ -1,4 +1,5 @@
 function upload(form) {
+alert("start uploading");
    $form = $('#upload-form');
    fd = new FormData($form[0]);
    $.ajax(
