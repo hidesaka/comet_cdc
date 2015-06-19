@@ -47,7 +47,7 @@ post '/xml_upload' do
          redirect '/'
 
       rescue => err
-         redirect to("/err/#{err.message}")
+         redirect to("/err/#{Rack::Utils.escape_html(err.message)}")
       end
    end
    redirect '/err/no xml file'
