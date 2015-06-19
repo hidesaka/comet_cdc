@@ -86,6 +86,7 @@ def make_daily_data(xml_contents)
    end
 
    datum
+   doc = nil
 end
 
 def make_stat(date, prev_stat, daily_data)
