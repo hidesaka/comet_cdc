@@ -9,6 +9,10 @@ require 'aws-sdk'
 require 'json'
 require 'eventmachine'
 
+configure :production do
+   require 'newrelic_rpm'
+end
+
 get '/err/:message' do |msg|
    puts "/err/:message is called (msg = #{msg})"
    @err_msg = msg
