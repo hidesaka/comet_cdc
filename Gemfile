@@ -7,6 +7,8 @@ gem 'libxml-ruby'
 gem 'aws-sdk'
 gem 'eventmachine'
 
+gem 'newrelic_rpm'
+
 # gem "rails"
 #
 group :development do
