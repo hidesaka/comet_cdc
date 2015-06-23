@@ -647,6 +647,9 @@ $(function () {
                                  console.log("bar_data");
                                  console.log(bar_data);
                                  for (i=0, j=0; i<dailies.length; i++) {
+                                    console.log("dailies.utime "+ dailies[i].utime);
+                                    console.log("bar_data.utime "+ bar_data[j].utime);
+                                    console.log(dailies[i].utime);
                                     dailies[i].bar_tension_kg = bar_data[j].tension_kg;
                                     dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j].tension_kg;
                                     if (dailies[i].utime < bar_data[j].utime) {
