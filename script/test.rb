@@ -89,7 +89,6 @@ def make_daily_data(xml_contents)
 end
 
 def make_stat(date, prev_stat, daily_data)
-   p date
    days = (prev_stat.empty?)? 1: prev_stat[:days] + 1
    utime = Time.parse(date).to_i*1000 # (ms) for D3.js
 
@@ -248,7 +247,11 @@ def s3_read_json(key)
 
    key = key.gsub(/\/+/,'/')
    puts "s3_read_json key -> #{key}"
-   body = $s3.get_object(bucket: "comet-cdc", key: key).body.read
+   begin
+      body = $s3.get_object(bucket: "comet-cdc", key: key).body.read
+   rescue
+      return []
+   end
    JSON.parse(body, :symbolize_names => true)
 end
 
@@ -271,10 +274,10 @@ end
 def s3_write_daily_stats(start_date, end_date)
    s3_file_list(start_date, end_date) do |a|
       puts a
-      puts "path -> #{a[:path]}"
-      puts "date -> #{a[:date]}"
-      puts "date_dir -> #{a[:date_dir]}"
-      puts "prev_date_dir -> #{a[:prev_date_dir]}"
+      ##puts "path -> #{a[:path]}"
+      #puts "date -> #{a[:date]}"
+      #puts "date_dir -> #{a[:date_dir]}"
+      #puts "prev_date_dir -> #{a[:prev_date_dir]}"
       prev_stat = s3_read_json("#{$s3_daily_dir}/#{a[:prev_date_dir]}/stat.json")
       daily_data = s3_read_json("#{$s3_daily_dir}/#{a[:date_dir]}/data.json")
 
