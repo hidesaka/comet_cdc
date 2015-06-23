@@ -648,7 +648,7 @@ $(function () {
                                     for (j=0; j<bar_data.length; j++) {
                                        console.log("i " + i);
                                        console.log("j " + j);
-                                       console.log("dailies.utime " + dailies[i].utime);
+                                       console.log(" dailies.utime " + dailies[i].utime);
                                        console.log("bar_data.utime " + bar_data[j].utime);
                                        if (dailies[i].utime <= bar_data[j].utime) {
                                           console.log("breaked at i " + i + " j " + j);
