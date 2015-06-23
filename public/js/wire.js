@@ -646,13 +646,14 @@ $(function () {
                                  var bar_data = read_tensionbar_csv(csv);
                                  for (i=0; i<dailies.length; i++) {
                                     for (j=0; j<bar_data.length; j++) {
-                                       if (dailies[i].utime <= bar_data[j].utime) {
-                                          j_last = j; 
-                                       } else if (dailies[i].utime > bar_data[j].utime) {
+                                       console.log("j " + j);
+                                       console.log("dailies.utime " + dailies[i].utime);
+                                       console.log("bar_data.utime " + bar_data[j].utime);
+                                       if (dailies[i].utime >= bar_data[j].utime) {
                                           break;
                                        }
-                                       dailies[i].bar_tension_kg = bar_data[j_last].tension_kg;
-                                       dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j_last].tension_kg;
+                                       dailies[i].bar_tension_kg = bar_data[j].tension_kg;
+                                       dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j].tension_kg;
                                     }
                                  }
 
