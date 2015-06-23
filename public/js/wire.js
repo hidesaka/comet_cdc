@@ -644,10 +644,12 @@ $(function () {
                                  var i, j;
 
                                  var bar_data = read_tensionbar_csv(csv);
+                                 console.log("bar_data");
+                                 console.log(bar_data);
                                  for (i=0, j=0; i<dailies.length; i++) {
                                     dailies[i].bar_tension_kg = bar_data[j].tension_kg;
                                     dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j].tension_kg;
-                                    if (dailies[i].utime <= bar_data[j].utime) {
+                                    if (dailies[i].utime < bar_data[j].utime) {
                                        j++;
                                     }
                                  }
