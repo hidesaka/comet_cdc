@@ -651,8 +651,8 @@ $(function () {
                                        } else if (dailies[i].utime > bar_data[j].utime) {
                                           break;
                                        }
-                                       dailies[i].bar_tension_kg = bar_data[j_lst].tension_kg;
-                                       dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j_lst].tension_kg;
+                                       dailies[i].bar_tension_kg = bar_data[j_last].tension_kg;
+                                       dailies[i].all_tension_kg = dailies[i].wire_tension_kg + bar_data[j_last].tension_kg;
                                     }
                                  }
 
