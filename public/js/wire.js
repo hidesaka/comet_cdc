@@ -650,6 +650,7 @@ $(function () {
                                        console.log("j " + j);
                                        console.log(" dailies.utime " + dailies[i].utime);
                                        console.log("bar_data.utime " + bar_data[j].utime);
+                                       console.log("bar_data.tension_kg " + bar_data[j].tension_kg);
                                        if (bar_data[j].utime > dailies[i].utime) {
                                           //console.log("breaked at i " + i + " j " + j);
                                           j = j -1;
