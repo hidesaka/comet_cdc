@@ -646,10 +646,10 @@ $(function () {
                                  var bar_data = read_tensionbar_csv(csv);
                                  for (i=0; i<dailies.length; i++) {
                                     for (j=0; j<bar_data.length; j++) {
-                                       //console.log("i " + i);
-                                       //console.log("j " + j);
-                                       //console.log(" dailies.utime " + dailies[i].utime);
-                                       //console.log("bar_data.utime " + bar_data[j].utime);
+                                       console.log("i " + i);
+                                       console.log("j " + j);
+                                       console.log(" dailies.utime " + dailies[i].utime);
+                                       console.log("bar_data.utime " + bar_data[j].utime);
                                        if (bar_data[j].utime > dailies[i].utime) {
                                           //console.log("breaked at i " + i + " j " + j);
                                           j = j -1;
