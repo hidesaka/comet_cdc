@@ -644,11 +644,11 @@ $(function () {
                                  var i, j, j_last;
 
                                  var bar_data = read_tensionbar_csv(csv);
-                                 for (j=0; j<bar_data.length; j++) {
-                                    console.log("j " + j);
-                                    console.log("bar_data.utime " + bar_data[j].utime);
-                                    console.log("bar_data.tension_kg " + bar_data[j].tension_kg);
-                                 }
+                                 //for (j=0; j<bar_data.length; j++) {
+                                 //   console.log("j " + j);
+                                 //   console.log("bar_data.utime " + bar_data[j].utime);
+                                 //   console.log("bar_data.tension_kg " + bar_data[j].tension_kg);
+                                 //}
 
                                  for (i=0; i<dailies.length; i++) {
                                     for (j=0; j<bar_data.length; j++) {
