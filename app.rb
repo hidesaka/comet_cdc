@@ -13,6 +13,10 @@ configure :production do
    require 'newrelic_rpm'
 end
 
+use Rack::Auth::Basic do |username, password|
+     username == ENV['BASIC_AUTH_USERNAME'] && password == ENV['BASIC_AUTH_PASSWORD']
+end
+
 get '/err/:message' do |msg|
    puts "/err/:message is called (msg = #{msg})"
    @err_msg = msg
