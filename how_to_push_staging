@@ -1,0 +1,4 @@
+heroku fork --from comet-cdc --to comet-cdc-staging
+git remove --v
+git remote add staging https://git.heroku.com/comet-cdc-staging.git
+git push staging staging:master --force
