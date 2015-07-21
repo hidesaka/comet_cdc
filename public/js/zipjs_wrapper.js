@@ -117,6 +117,3 @@
 
    })(this);
 
-   $(function() {
-         zipWrapper.init("#upload-form-file");
-   });
