@@ -2,7 +2,7 @@ function zip_upload(name, url) {
    $(name + " #progress_msg").html("");
    $(name + " #progress_bar").attr("value", 0);
    $(name + " #progress_bar").show();
-   zipWrapper(name, function(blob) {
+   zipWrapper.upload(function(blob) {
          $.ajax({
                url: url,
                type: 'post',

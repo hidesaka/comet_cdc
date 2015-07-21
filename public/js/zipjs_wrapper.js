@@ -79,9 +79,13 @@
             };
       })();
 
-      obj.zipWrapper = function(id, callback) {
-            var fileInput = document.getElementById(id);
+      obj.zipWrapper = {
+         var fileInput;
+         init: function(id) {
+            fileInput = document.getElementById(id);
             console.log("fileInput " + fileInput);
+         },
+         upload: function(callback) {
             model.setCreationMethod("Blob");
             fileInput.addEventListener('change', function() {
                   fileInput.disabled = true;
@@ -111,3 +115,7 @@
          };
 
    })(this);
+
+   $(function() {
+         zipWrapper.init("#upoad-form-file");
+   });
