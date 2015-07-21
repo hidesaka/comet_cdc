@@ -80,7 +80,7 @@
       })();
 
       obj.zipWrapper = function(id, callback) {
-         var fileInput = document.getElementById(id);
+         var fileInput = $(id)[0];
          console.log("fileInput " + fileInput);
          model.setCreationMethod("Blob");
          fileInput.addEventListener('change', function() {
