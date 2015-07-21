@@ -29,18 +29,27 @@ end
 
 post '/zip_upload' do 
 
-   today = Time.now
-   #today = Time.local(2015,6,19)
-   dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
-   date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
+   if params[:data]
+      begin 
+         today = Time.now
+         #today = Time.local(2015,6,19)
+         dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
+         date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
 
-   fork do
-      body = params[:data]
-      s3_write("zip/#{dir_name}/COMETCDC.zip", body)
-      s3_write_daily_datum(date, date) # daily/20150611/data.json
-      s3_write_daily_stats(date, date) # daily/20150611/stat.json
-      s3_write_stats(date) # stats/stats.json
-      return "success to upload COMETCDC.zip"
+         fork do
+            body = params[:data]
+            s3_write("zip/#{dir_name}/COMETCDC.zip", body)
+            s3_write_daily_datum(date, date) # daily/20150611/data.json
+            s3_write_daily_stats(date, date) # daily/20150611/stat.json
+            s3_write_stats(date) # stats/stats.json
+            return "success to upload COMETCDC.zip"
+         end
+
+      rescue => err
+         return err.message
+      end
+   else
+      return "params[:data] is null"
    end
 
 end
