@@ -88,16 +88,16 @@
                model.addFiles(fileInput.files, function() {
                   }, function(file) {
                      var li = document.createElement("li");
-                     zipProgress.value = 0;
-                     zipProgress.max = 0;
-                     li.textContent = file.name;
-                     li.appendChild(zipProgress);
+                     //zipProgress.value = 0;
+                     //zipProgress.max = 0;
+                     //li.textContent = file.name;
+                     //li.appendChild(zipProgress);
                   }, function(current, total) {
-                     zipProgress.value = current;
-                     zipProgress.max = total;
+                     //zipProgress.value = current;
+                     //zipProgress.max = total;
                   }, function() {
-                     if (zipProgress.parentNode)
-                        zipProgress.parentNode.removeChild(zipProgress);
+                     //if (zipProgress.parentNode)
+                     //   zipProgress.parentNode.removeChild(zipProgress);
                      fileInput.value = "";
                      fileInput.disabled = false;
 
