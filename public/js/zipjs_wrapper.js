@@ -108,4 +108,7 @@
                   });
             });
          };
+
+         obj.zipWrapper('#upload-form-file', '/zip_upload');
+
    })(this);
