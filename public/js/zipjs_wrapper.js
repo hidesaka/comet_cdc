@@ -80,36 +80,35 @@
       })();
 
       obj.zipWrapper = function(id, callback) {
-            var fileInput = document.getElementById(id);
-            console.log("fileInput " + fileInput);
-            model.setCreationMethod("Blob");
-            fileInput.addEventListener('change', function() {
-                  fileInput.disabled = true;
-                  model.addFiles(fileInput.files, function() {
-                     }, function(file) {
-                        var li = document.createElement("li");
-                        zipProgress.value = 0;
-                        zipProgress.max = 0;
-                        li.textContent = file.name;
-                        li.appendChild(zipProgress);
-                     }, function(current, total) {
-                        zipProgress.value = current;
-                        zipProgress.max = total;
-                     }, function() {
-                        if (zipProgress.parentNode)
-                           zipProgress.parentNode.removeChild(zipProgress);
-                        fileInput.value = "";
-                        fileInput.disabled = false;
+         var fileInput = document.getElementById(id);
+         console.log("fileInput " + fileInput);
+         model.setCreationMethod("Blob");
+         fileInput.addEventListener('change', function() {
+               fileInput.disabled = true;
+               model.addFiles(fileInput.files, function() {
+                  }, function(file) {
+                     var li = document.createElement("li");
+                     zipProgress.value = 0;
+                     zipProgress.max = 0;
+                     li.textContent = file.name;
+                     li.appendChild(zipProgress);
+                  }, function(current, total) {
+                     zipProgress.value = current;
+                     zipProgress.max = total;
+                  }, function() {
+                     if (zipProgress.parentNode)
+                        zipProgress.parentNode.removeChild(zipProgress);
+                     fileInput.value = "";
+                     fileInput.disabled = false;
 
-                        console.log("finish to make zipFile");
+                     console.log("finish to make zipFile");
 
-                        model.getBlob(function(blob) {
-                              callback(blob);
-                        });
-                  });
-            });
-         }
-      };
+                     model.getBlob(function(blob) {
+                           callback(blob);
+                     });
+               });
+         });
+      }
 
 })(this);
 
