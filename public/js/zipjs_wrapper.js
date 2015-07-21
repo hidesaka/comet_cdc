@@ -79,8 +79,8 @@
             };
       })();
 
+      var fileInput;
       obj.zipWrapper = {
-         var fileInput;
          init: function(id) {
             fileInput = document.getElementById(id);
             console.log("fileInput " + fileInput);
