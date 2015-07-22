@@ -99,14 +99,15 @@
                   }, function() {
                      //if (zipProgress.parentNode)
                      //   zipProgress.parentNode.removeChild(zipProgress);
-                     //fileInput.value = "";
-                     fileInput.disabled = false;
 
                      console.log("finish to make zipFile");
 
                      model.getBlob(function(blob) {
                            callback(blob);
                      });
+
+                     fileInput.value = "";
+                     fileInput.disabled = false;
                });
          });
       }
