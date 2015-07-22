@@ -14,6 +14,7 @@ $local_xml_dir="../xml"
 $local_daily_dir="../daily"
 $local_stats_dir="../stats"
 $s3_xml_dir="xml/"
+$s3_zip_dir="zip/"
 $s3_daily_dir="daily/"
 $s3_stats_dir="stats/"
 
@@ -209,8 +210,9 @@ def s3_file_list(start_date, end_date)
    s3_setup
 
    prev_date_dir = "none"
-   $s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
+   #$s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
     #  if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
+   $s3.list_objects(bucket: "comet-cdc", prefix: $s3_zip_dir).contents.each do |obj|
       if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.zip/)
          date_dir = "#{$1}#{$2}#{$3}"
          date = "#{$1}/#{$2}/#{$3}"
