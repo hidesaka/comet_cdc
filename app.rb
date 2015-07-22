@@ -35,9 +35,9 @@ post '/zip_upload' do
    logger = Logger.new(STDOUT)
    logger.debug("Logger.debug")
    logger.debug(params)
-   logger.debug("End of logger.debug")
-   logger.close
    if params[:zip]
+      logger.debug("params[:zip]")
+      logger.debug(params[:zip][:tempfile].read)
       begin 
          today = Time.now
          #today = Time.local(2015,6,19)
