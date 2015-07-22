@@ -116,12 +116,14 @@
                $(name + " #progress_bar").show();
                console.log("starting ajax...");
                console.log("blog: " + blob)
+               var fd = new FormData();
+               fd.append("zip", blob);
                $.ajax({
                   url: url,
                   type: 'post',
                   processData: false,
                   contentType: false,
-                  data: {zip: blob},
+                  data: fd,
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
                      console.log(data); 
