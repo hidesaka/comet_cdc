@@ -6,6 +6,7 @@ gem 'sinatra-contrib'
 gem 'libxml-ruby'
 gem 'aws-sdk'
 gem 'eventmachine'
+gem 'dotenv'
 
 gem 'newrelic_rpm'
 

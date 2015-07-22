@@ -5,6 +5,7 @@ require 'time'
 require 'open-uri'
 require 'json'
 require 'fileutils'
+require 'dotenv'
 
 require 'aws-sdk'
 require 'xml'
@@ -305,6 +306,7 @@ List of functions
 END
 
 if $0 == __FILE__
+   Dotenv.load
    if ARGV.size == 0
       puts USAGE
       exit
