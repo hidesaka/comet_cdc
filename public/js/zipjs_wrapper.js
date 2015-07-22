@@ -106,8 +106,8 @@
                            callback(blob);
                      });
 
-                     fileInput.value = "";
-                     fileInput.disabled = false;
+                     //fileInput.value = "";
+                     //fileInput.disabled = false;
                });
          });
       }

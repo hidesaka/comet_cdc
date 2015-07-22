@@ -130,6 +130,7 @@
                   },
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
+                     $(name + " #progress_msg").hide();
                      console.log(data); 
                   },
                   xhr : function() {
