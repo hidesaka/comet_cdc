@@ -141,6 +141,7 @@ $(function() {
                   processData: false,
                   contentType: false,
                   data: fd,
+                  timeout: 30000,
                   error: function (xhr, textStatus, errorThrown) {
                      console.log("there is error at ajax...");
                      console.log(xhr.responseText);
