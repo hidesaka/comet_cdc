@@ -131,6 +131,7 @@
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
                      $(name + " #progress_msg").hide();
+                     $(name + " #upload-form-file").value("");
                      console.log(data); 
                   },
                   xhr : function() {
