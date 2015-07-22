@@ -50,11 +50,18 @@ post '/zip_upload' do
             rd.close
             body = params[:zip][:tempfile].read
             s3_write("zip/#{dir_name}/COMETCDC.zip", body)
-#            s3_write_daily_datum(date, date) # daily/20150611/data.json
-#            s3_write_daily_stats(date, date) # daily/20150611/stat.json
-            s3_write_stats(date) # stats/stats.json
-            wr.write "success to upload COMETCDC.zip"
+            s3_write_daily_datum(date, date) # daily/20150611/data.json
+            s3_write_daily_stats(date, date) # daily/20150611/stat.json
+            wr.write "success to upload COMETCDC.zip, daily_datum, and daily_stats"
          end
+
+         fork do
+            rd.close
+            body = params[:zip][:tempfile].read
+            s3_write_stats(date) # stats/stats.json
+            wr.write "success to upload stats"
+         end
+
          wr.close
          Process.waitall
          return rd.read
