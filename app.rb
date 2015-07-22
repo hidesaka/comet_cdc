@@ -40,8 +40,8 @@ post '/zip_upload' do
       #logger.debug("params[:zip]")
       #logger.debug(params[:zip][:tempfile].read)
       begin 
-         #today = Time.now
-         today = Time.local(2017,6,19)
+         today = Time.now
+         #today = Time.local(2017,6,19)
          dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
          date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
 
