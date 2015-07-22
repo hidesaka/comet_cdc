@@ -132,8 +132,8 @@
                   success: function(data) { 
                      $(name + " #progress_msg").html("done!").fadeOut(3000);
                      $(name + " #progress_bar").fadeOut(3000);
-                     $(name + " #upload-form-file").val("");
-                     $(name + " #upload-form-file").removeAttr("disabled");
+                     $(name + " #upload-form-file").delay(3000).val("");
+                     $(name + " #upload-form-file").delay(3000).removeAttr("disabled");
                      console.log(data); 
                   },
                   xhr : function() {
