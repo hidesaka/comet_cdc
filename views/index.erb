@@ -114,13 +114,12 @@
                $(name + " #progress_msg").html("");
                $(name + " #progress_bar").attr("value", 0);
                $(name + " #progress_bar").show();
-               var fd = new FormData();
-               fd.append("zip", blob);
                $.ajax({
                   url: url,
                   type: 'post',
-                  xhr2: true,
-                  rawData: fd,
+                  processData: false,
+                  contentType: false,
+                  data: {zip: blob},
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
                      console.log(data); 
