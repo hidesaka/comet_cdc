@@ -45,16 +45,19 @@ post '/zip_upload' do
          dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
          date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
 
-         Process.detach(
-            fork do
+         rd, wr = IO.pipe
+         fork do
+            rd.close
             body = params[:zip][:tempfile].read
             s3_write("zip/#{dir_name}/COMETCDC.zip", body)
             #            s3_write_daily_datum(date, date) # daily/20150611/data.json
             #            s3_write_daily_stats(date, date) # daily/20150611/stat.json
             #            s3_write_stats(date) # stats/stats.json
-            return "success to upload COMETCDC.zip"
-            end
-         )
+            wr.write "success to upload COMETCDC.zip"
+         end
+         wr.close
+         Process.waitall
+         return rd.read
 
       rescue => err
          return err.message
