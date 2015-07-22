@@ -119,8 +119,7 @@
                $.ajax({
                   url: url,
                   type: 'post',
-                  processData: false,
-                  contentType: false,
+                  xhr2: true,
                   rawData: fd,
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
