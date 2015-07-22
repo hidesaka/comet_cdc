@@ -52,7 +52,7 @@ post '/zip_upload' do
             s3_write("zip/#{dir_name}/COMETCDC.zip", body)
             s3_write_daily_datum(date, date) # daily/20150611/data.json
             s3_write_daily_stats(date, date) # daily/20150611/stat.json
-            s3_write_stats(date) # stats/stats.json
+#            s3_write_stats(date) # stats/stats.json
             wr.write "success to upload COMETCDC.zip"
          end
          wr.close
