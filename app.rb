@@ -29,7 +29,7 @@ end
 
 post '/zip_upload' do 
 
-   if params[:data]
+   if params[:zip]
       begin 
          today = Time.now
          #today = Time.local(2015,6,19)
@@ -37,7 +37,7 @@ post '/zip_upload' do
          date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
 
          fork do
-            body = params[:data]
+            body = params[:zip]
             s3_write("zip/#{dir_name}/COMETCDC.zip", body)
             s3_write_daily_datum(date, date) # daily/20150611/data.json
             s3_write_daily_stats(date, date) # daily/20150611/stat.json
@@ -49,7 +49,7 @@ post '/zip_upload' do
          return err.message
       end
    else
-      return "params[:data] is null"
+      return "params[:zip] is null"
    end
 
 end
