@@ -82,10 +82,10 @@
       obj.zipWrapper = function(id, callback) {
          var fileInput = $(id)[0];
          console.log("fileInput " + fileInput);
-         var name = "#upload-xml";
-         $(name + " #progress_msg").html("Compressing...");
-         $(name + " #progress_bar").attr("value", 0);
-         $(name + " #progress_bar").show();
+         //var name = "#upload-xml";
+         //$(name + " #progress_msg").html("Compressing...");
+         //$(name + " #progress_bar").attr("value", 0);
+         //$(name + " #progress_bar").show();
 
          model.setCreationMethod("Blob");
 
@@ -102,7 +102,7 @@
                      //zipProgress.max = total;
                      var progre = parseInt(current/total*10000)/100 ;
                      $(name + " #progress_msg").height("30px");
-                     $(name + " #progress_msg").html(progre+"%");
+                     $(name + " #progress_msg").html("Compressing.. " + progre+"%");
                      $(name + " #progress_bar").attr("value", progre);
                   }, function() {
                      //if (zipProgress.parentNode)
