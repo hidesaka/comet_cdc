@@ -130,10 +130,8 @@
                      console.log(xhr.responseText);
                   },
                   success: function(data) { 
-                     $(name + " #progress_msg").html("done!").fadeOut(1000);
-                     $(name + " #progress_bar").fadeOut(1000);
-                     //$(name + " #progress_bar").hide();
-                     //$(name + " #progress_msg").hide();
+                     $(name + " #progress_msg").html("done!").fadeOut(3000);
+                     $(name + " #progress_bar").fadeOut(3000);
                      $(name + " #upload-form-file").val("");
                      $(name + " #upload-form-file").removeAttr("disabled");
                      console.log(data); 
