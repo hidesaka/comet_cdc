@@ -82,7 +82,7 @@
       obj.zipWrapper = function(id, callback) {
          var fileInput = $(id)[0];
          console.log("fileInput " + fileInput);
-         var name = "#upoad-xml";
+         var name = "#upload-xml";
          $(name + " #progress_msg").html("Compressing...");
          $(name + " #progress_bar").attr("value", 0);
          $(name + " #progress_bar").show();
