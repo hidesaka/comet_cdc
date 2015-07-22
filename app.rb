@@ -10,9 +10,9 @@ require 'json'
 require 'eventmachine'
 
 
-require 'logger'
-logdir = File.dirname(__FILE__)
-logger = Logger.new(logdir + "/log.txt")
+#require 'logger'
+#logdir = File.dirname(__FILE__)
+#logger = Logger.new(logdir + "/log.txt")
 
 configure :production do
    require 'newrelic_rpm'
@@ -34,26 +34,26 @@ end
 
 post '/zip_upload' do 
 
-   logger.debug("Logger.debug")
-   logger.debug(params)
+   #logger.debug("Logger.debug")
+   #logger.debug(params)
    if params[:zip]
-      logger.debug("params[:zip]")
-      logger.debug(params[:zip][:tempfile].read)
+      #logger.debug("params[:zip]")
+      #logger.debug(params[:zip][:tempfile].read)
       begin 
          today = Time.now
          #today = Time.local(2015,6,19)
          dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
          date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
 
-         fork do
+#         fork do
             #body = params[:zip][:tempfile].read
-            body = "test"
+#            body = "test"
 #            s3_write("zip/#{dir_name}/COMETCDC.zip", body)
 #            s3_write_daily_datum(date, date) # daily/20150611/data.json
 #            s3_write_daily_stats(date, date) # daily/20150611/stat.json
 #            s3_write_stats(date) # stats/stats.json
-            return "success to upload COMETCDC.zip"
-         end
+#            return "success to upload COMETCDC.zip"
+#         end
 
       rescue => err
          return err.message
