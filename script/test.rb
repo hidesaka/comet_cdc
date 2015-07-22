@@ -210,7 +210,8 @@ def s3_file_list(start_date, end_date)
 
    prev_date_dir = "none"
    $s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
-      if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
+    #  if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
+      if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.zip/)
          date_dir = "#{$1}#{$2}#{$3}"
          date = "#{$1}/#{$2}/#{$3}"
          utime = Time.parse(date)
