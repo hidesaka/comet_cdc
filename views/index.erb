@@ -109,6 +109,8 @@
       <script>
          $(function() {
             zipWrapper("#upload-xml #upload-form-file", function(blob) {
+               var form = $("#upload-xml")[0];
+               form.preventDefault();
                var name = "#upload-xml";
                var url = "/zip_upload";
                $(name + " #progress_msg").html("");
