@@ -32,7 +32,8 @@ end
 
 post '/zip_upload' do 
 
-   logger = Logger.new("log.txt")
+   logdir = File.dirname(__FILE__)
+   logger = Logger.new(logdir + "/log.txt")
    logger.debug("Logger.debug")
    logger.debug(params)
    if params[:zip]
