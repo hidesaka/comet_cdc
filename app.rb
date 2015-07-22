@@ -9,6 +9,9 @@ require 'aws-sdk'
 require 'json'
 require 'eventmachine'
 
+
+require 'logger'
+
 configure :production do
    require 'newrelic_rpm'
 end
@@ -29,6 +32,11 @@ end
 
 post '/zip_upload' do 
 
+   logger = Logger.new(STDOUT)
+   logger.debug("Logger.debug")
+   logger.debug(params)
+   logger.debug("End of logger.debug")
+   logger.close
    if params[:zip]
       begin 
          today = Time.now
