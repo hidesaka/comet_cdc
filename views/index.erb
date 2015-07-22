@@ -126,6 +126,7 @@
                   data: fd,
                   error: function (xhr, textStatus, errorThrown) {
                      console.log("there is error at ajax...");
+                     console.log(xhr.responseText);
                   },
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
