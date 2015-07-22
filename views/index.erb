@@ -131,10 +131,10 @@
                   },
                   success: function(data) { 
                      $(name + " #progress_msg").html("done!").fadeOut("slow");
+                     //$(name + " #progress_msg").hide();
                      $(name + " #upload-form-file").val("");
                      $(name + " #upload-form-file").removeAttr("disabled");
                      $(name + " #progress_bar").hide();
-                     $(name + " #progress_msg").hide();
                      console.log(data); 
                   },
                   xhr : function() {
