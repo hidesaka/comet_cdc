@@ -6,6 +6,7 @@ require 'open-uri'
 require 'json'
 require 'fileutils'
 require 'dotenv'
+require 'zip'
 
 require 'aws-sdk'
 require 'xml'
@@ -269,7 +270,16 @@ def s3_write_daily_datum(start_date, end_date)
       #puts "path -> #{a[:path]}"
       #puts "date -> #{a[:date]}"
       #puts "date_dir -> #{a[:date_dir]}"
-      data = make_daily_data(open(a[:path]) { |f| f.read } )
+#      data = make_daily_data(open(a[:path]) { |f| f.read } )
+      xml=""
+      open(a[:path]) do |file|
+         Zip::File.open_buffer(file.read) do |zf|
+            zf.each do |entry|
+               xml = entry.get_input_stream.read
+            end
+         end
+      end
+      data = make_daily_data(xml)
       s3_write_json("#{$s3_daily_dir}/#{a[:date_dir]}/data.json", data)
       s3_write_json("#{$s3_daily_dir}/current/data.json", data)
    end

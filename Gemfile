@@ -7,6 +7,7 @@ gem 'libxml-ruby'
 gem 'aws-sdk'
 gem 'eventmachine'
 gem 'dotenv'
+gem 'rubyzip', '>= 1.0.0'
 
 gem 'newrelic_rpm'
 

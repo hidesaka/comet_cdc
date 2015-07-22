@@ -75,6 +75,7 @@ DEPENDENCIES
   heroku
   libxml-ruby
   newrelic_rpm
+  rubyzip (>= 1.0.0)
   sinatra
   sinatra-contrib
 
