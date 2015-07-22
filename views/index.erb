@@ -124,6 +124,9 @@
                   processData: false,
                   contentType: false,
                   data: fd,
+                  error: function (xhr, textStatus, errorThrown) {
+                     console.log($.parseJSON(xhr.responseText));
+                  },
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
                      console.log(data); 
