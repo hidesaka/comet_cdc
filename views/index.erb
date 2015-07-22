@@ -125,7 +125,7 @@
                   contentType: false,
                   data: fd,
                   error: function (xhr, textStatus, errorThrown) {
-                     console.log($.parseJSON(xhr.responseText));
+                     console.log("there is error at ajax...");
                   },
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
