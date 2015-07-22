@@ -88,11 +88,11 @@
          fileInput.addEventListener('change', function(event) {
                model.addFiles(fileInput.files, function() {
                      var name = "#upload-xml";
-                     //$(name + " #progress_msg").html("Compressing...");
-                     //$(name + " #progress_bar").attr("value", 0);
+                     $(name + " #progress_msg").html("Compressing...");
+                     $(name + " #progress_bar").attr("value", 0);
                      $(name + " #progress_bar").show();
                   }, function(file) {
-                     var li = document.createElement("li");
+                     //var li = document.createElement("li");
                      //zipProgress.value = 0;
                      //zipProgress.max = 0;
                      //li.textContent = file.name;
