@@ -11,6 +11,8 @@ require 'eventmachine'
 
 
 require 'logger'
+logdir = File.dirname(__FILE__)
+logger = Logger.new(logdir + "/log.txt")
 
 configure :production do
    require 'newrelic_rpm'
@@ -32,8 +34,6 @@ end
 
 post '/zip_upload' do 
 
-   logdir = File.dirname(__FILE__)
-   logger = Logger.new(logdir + "/log.txt")
    logger.debug("Logger.debug")
    logger.debug(params)
    if params[:zip]
