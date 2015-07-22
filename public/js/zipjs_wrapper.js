@@ -83,7 +83,8 @@
          var fileInput = $(id)[0];
          console.log("fileInput " + fileInput);
          model.setCreationMethod("Blob");
-         fileInput.addEventListener('change', function() {
+         fileInput.addEventListener('change', function(event) {
+               event.preventDefault();
                fileInput.disabled = true;
                model.addFiles(fileInput.files, function() {
                   }, function(file) {
