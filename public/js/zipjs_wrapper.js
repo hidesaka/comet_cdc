@@ -101,6 +101,7 @@
                      //zipProgress.value = current;
                      //zipProgress.max = total;
                      var progre = parseInt(current/total*10000)/100 ;
+                     var name = "#upload-xml";
                      $(name + " #progress_msg").height("30px");
                      $(name + " #progress_msg").html("Compressing.. " + progre+"%");
                      $(name + " #progress_bar").attr("value", progre);
