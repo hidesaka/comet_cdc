@@ -114,6 +114,7 @@
                $(name + " #progress_msg").html("");
                $(name + " #progress_bar").attr("value", 0);
                $(name + " #progress_bar").show();
+               console.log("starting ajax...");
                $.ajax({
                   url: url,
                   type: 'post',
