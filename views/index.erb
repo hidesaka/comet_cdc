@@ -114,6 +114,7 @@
                $(name + " #progress_msg").html("");
                $(name + " #progress_bar").attr("value", 0);
                $(name + " #progress_bar").show();
+               $(name + " #upload-form-file").attr("disabled","disabled");
                console.log("starting ajax...");
                console.log("blog: " + blob)
                var fd = new FormData();
@@ -131,7 +132,8 @@
                   success: function(data) { 
                      $(name + " #progress_bar").hide();
                      $(name + " #progress_msg").hide();
-                     $(name + " #upload-form-file").val("");
+                     $(name + " #upload-form-file").html("");
+                     $(name + " #upload-form-file").removeAttr("disabled");
                      console.log(data); 
                   },
                   xhr : function() {

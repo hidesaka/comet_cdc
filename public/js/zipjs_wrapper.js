@@ -84,8 +84,6 @@
          console.log("fileInput " + fileInput);
          model.setCreationMethod("Blob");
          fileInput.addEventListener('change', function(event) {
-               event.preventDefault();
-               fileInput.disabled = true;
                model.addFiles(fileInput.files, function() {
                   }, function(file) {
                      var li = document.createElement("li");
