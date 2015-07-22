@@ -11,6 +11,7 @@ GEM
     backports (3.6.4)
     domain_name (0.5.24)
       unf (>= 0.0.5, < 1.0.0)
+    dotenv (2.0.2)
     eventmachine (1.0.7)
     excon (0.45.3)
     foreman (0.78.0)
@@ -68,6 +69,7 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk
+  dotenv
   eventmachine
   foreman
   heroku
@@ -75,3 +77,6 @@ DEPENDENCIES
   newrelic_rpm
   sinatra
   sinatra-contrib
+
+BUNDLED WITH
+   1.10.5
