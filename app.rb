@@ -57,7 +57,6 @@ post '/zip_upload' do
 
          fork do
             rd.close
-            body = params[:zip][:tempfile].read
             s3_write_stats(date) # stats/stats.json
             wr.write "success to upload stats"
          end
