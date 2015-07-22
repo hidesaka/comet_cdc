@@ -111,6 +111,7 @@
             zipWrapper("#upload-xml #upload-form-file", function(blob) {
                var name = "#upload-xml";
                var url = "/zip_upload";
+               $(name + " #progress_msg").show();
                $(name + " #progress_msg").html("Uploading...");
                $(name + " #progress_bar").attr("value", 0);
                $(name + " #progress_bar").show();
