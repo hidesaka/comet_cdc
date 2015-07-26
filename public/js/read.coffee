@@ -36,6 +36,90 @@ for num,i in numWires
 #############
 # Functions #
 #############
+get_today_name = ->
+  today = new Date;
+  year = today.getFullYear()
+  month = today.getMonth()+1
+  date = today.getDate()
+  month2 = ("00"+month).substr(-2)
+  date2  = ("00"+date).substr(-2)
+  format_date = "#{year}/#{month2}/#{date2}"
+  dirname = format_date.replace(/\//g, '')
+  [format_date, dirname]
+
+
+get_last_date = (now_utime_sec, num_wires, num_ave) ->
+   remaining_wires = numTotalWires - num_wires
+   string_speed = num_ave
+   remaining_work_days = remaining_wires/string_speed
+   #p string_speed
+   #p remaining_work_days
+   num_holidays = 0
+   remaining_days = 1
+   #current = new Date(now_utime_sec*1000)
+   #current_day = Date.new(current.year, current.mon, current.day)
+   #puts "current_day #{current_day}"
+
+   work_days = 1
+   loop
+      break if work_days >= remaining_work_days
+      #day = current_day + remaining_days
+      day = new Date((now_utime_sec + remaining_days*24*60*60)*1000) # ms
+      #p day
+      if (day.getDay()==0 or day.getDay()==6)          then num_holidays+=1; remaining_days+=1; continue;
+      if ((day.getMonth()+1)==8 and day.getDate()==13) then num_holidays+=1; remaining_days+=1; continue;
+      if ((day.getMonth()+1)==8 and day.getDate()==14) then num_holidays+=1; remaining_days+=1; continue;
+      remaining_days+=1
+      work_days+=1
+   
+   last_utime_ms = (now_utime_sec + remaining_days*24*60*60)*1000
+   last_date = new Date(last_utime_ms)
+   last_day = "#{last_date.getFullYear()}/#{last_date.getMonth()+1}/#{last_date.getDate()}"
+   #console.log("remaining_days #{remaining_days}")
+   #console.log("last_day #{last_day}")
+   [ last_day, last_utime_ms ]
+
+
+make_daily_data = (xml) ->
+  datum=[]
+  for layerid in [1..39]
+    layerID = layerid
+    layer = xml.getElementsByTagName("T_Data#{layerid}")
+    for wire,i in layer
+      dataID = wire.getElementsByTagName("DataID")[0].childNodes[0].nodeValue
+      wireID = wire.getElementsByTagName("WireID")[0].childNodes[0].nodeValue
+      continue if not wire.getElementsByTagName("Density1")[0]
+      density = wire.getElementsByTagName("Density1")[0].childNodes[0].nodeValue
+      tBase = wire.getElementsByTagName("TBase")[0].childNodes[0].nodeValue
+      date = wire.getElementsByTagName("Date1")[0].childNodes[0].nodeValue
+      freq = wire.getElementsByTagName("Frq1")[0].childNodes[0].nodeValue
+      tens = wire.getElementsByTagName("Ten1")[0].childNodes[0].nodeValue
+      data = {dataID: dataID, layerID: layerID, wireID: wireID, tBase: tBase, density: density, date: date, freq: freq, tens: tens}
+      datum.push(data)
+  datum
+
+make_stat = (today_date, prev_stat, daily_data) ->
+   days = if not prev_stat? then 1 else prev_stat.days + 1
+   #console.log("make_stat: days #{days}")
+   utime = new Date("#{today_date} 00:00:00").getTime() # (ms) for D3.js
+
+   num_sum = daily_data.length
+   num_sense = _.filter(daily_data, (d) -> d.tBase=="50").length
+   num_field = _.filter(daily_data, (d) -> d.tBase=="80").length
+   num_day = if not prev_stat? then daily_data.length else daily_data.length - prev_stat.num_sum
+   wire_tension_kg = _.reduce(daily_data, ((memo, d) -> memo + d.tens*0.001), 0)
+
+   num_ave = daily_data.length/days
+   num_bad = 0 
+   for d in daily_data
+     num_bad++ if d.tBase=="50" and (d.tens<45.0 or d.tens>55.0)
+     num_bad++ if d.tBase=="80" and (d.tens<72.0 or d.tens>88.0)
+   [last_date, last_utime] = get_last_date(utime/1000, num_sum, num_ave)
+   stat =  {date: today_date, utime: utime, days: days, num_sum: num_sum, num_sense: num_sense, num_field: num_field, num_day: num_day, num_ave: num_ave, num_bad: num_bad, wire_tension_kg: wire_tension_kg, last_date: last_date, last_utime: last_utime}
+   #console.log("make_stat:")
+   #console.log(stat)
+   stat
+
 append_svg = (id) ->
   d3.select(id).append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -252,10 +336,64 @@ class S3
     console.log("===========");
 
 
-   getObject: (name, callback) ->
-     @s3.listObjects (err, data) =>
-       for obj in data.Contents when obj.Key==name
-         callback @s3.getSignedUrl('getObject', {Bucket: @s3BucketName, Key: obj.Key})
+  getObject: (name, callback) ->
+    @s3.listObjects (err, data) =>
+      for obj in data.Contents when obj.Key==name
+        callback @s3.getSignedUrl('getObject', {Bucket: @s3BucketName, Key: obj.Key})
+   
+  putObject: (name, body, callback_upload, callback_progress) ->
+    params = {Key: name, Body: body}
+    upload = @s3.upload(params, (err, data) -> callback_upload(err, data))
+    upload.on('httpUploadProgress', (event) -> callback_progress(event))
+  
+  putObjectWithProgress: (name, body, div_file, div_msg, div_bar) ->
+    # initialization
+    $(div_msg).show()
+    $(div_bar).attr("value", 0)
+    $(div_bar).show()
+    $(div_file).attr("disabled","disabled")
+
+    @putObject name, body
+      , (err, data) -> 
+        if (err)
+          console.log("there is error on s3.putObject #{err}")
+        else
+          console.log("succeed to upload #{name}")
+          $(div_file).val("").removeAttr("disabled")
+          $(div_msg).html("done!").fadeOut(3000)
+          $(div_bar).fadeOut(3000)
+      , (event) ->
+        progre = parseInt(event.loaded/event.total*10000)/100
+        #console.log(progre+"%") 
+        $(div_msg).height("30px")
+        $(div_msg).html("Uploading.. " + progre+"%")
+        $(div_bar).attr("value", progre)
+
+  getJSON_prev_stat: (today, callback) ->
+    today_as_int = parseInt(today)
+    latest_date = ""
+    @s3.listObjects (err, data) =>
+      for obj in data.Contents
+        a = obj.Key.match(/daily\/(\d\d\d\d\d\d\d\d)\/stat.json/)
+        continue if not a
+        #console.log "match -> a[0] #{a[0]} a[1] #{a[1]}"
+        date_as_int = parseInt(a[1])
+        latest_date = a[1] if date_as_int < today_as_int
+
+      #console.log("latest_date #{latest_date}")
+      #console.log("today #{today}")
+       
+      # check 
+      @getObject "daily/#{latest_date}/stat.json", (url) ->
+        d3.json(url, (data) -> callback(data))
+         
+  getJSON_stats: (callback) ->
+    @s3.listObjects (err, data) =>
+      for obj in data.Contents when obj.Key=="stats/stats.json"
+        @getObject obj.Key, (url) ->
+          d3.json(url, (data) -> callback(data))
+         
+         
 
 class DialGauge
   @read_csv: (csv) ->
@@ -742,8 +880,11 @@ class TensionHistogram
 
 
 $ ->
-  $("#file").change ->
-    console.log "called onFileInput"
+
+  s3 = new S3()
+
+  $("#upload-xml #upload-form-file").change ->
+    #console.log "called onFileInput"
     item = @files[0]
     reader = new FileReader()
     reader.onload = onFileLoad
@@ -753,10 +894,56 @@ $ ->
   onFileLoad = (e) -> 
     parser = new DOMParser()
     xmlDoc = parser.parseFromString(e.target.result, "text/xml")
-    console.log xmlDoc
+    #console.log xmlDoc
+
+    [today_date, today_dir] = get_today_name()
+    #today_date = "2015/07/24" # debug
+    #today_dir  = "20150724" # debug
+    #console.log("TODAY: #{today_date} #{today_dir}")
+
+    #daily_dir = "test"
+    #stats_dir = "test"
+    daily_dir = "daily/#{today_dir}"
+    stats_dir = "stats/#{today_dir}"
+
+    # daily_data
+    daily_data = make_daily_data(xmlDoc)
+    #console.log("uploading data.json")
+    s3.putObjectWithProgress "#{daily_dir}/data.json", JSON.stringify(daily_data),
+      "#upload-xml",
+      "#upload-json-daily-data #progress_msg",
+      "#upload-json-daily-data #progress_bar"
+
+    # daily_stat
+    s3.getJSON_prev_stat today_dir, (prev_stat) ->
+      #console.log("getJSON_prev_stat is called!!!")
+      #console.log(prev_stat)
+      daily_stat = make_stat(today_date, prev_stat, daily_data)
+      s3.putObjectWithProgress "#{daily_dir}/stat.json", JSON.stringify(daily_stat),
+        "#upload-xml",
+        "#upload-json-daily-stat #progress_msg",
+        "#upload-json-daily-stat #progress_bar"
+
+      # stats
+      s3.getJSON_stats (prev_stats) ->
+        #console.log("getJSON_prev_stats is called!!!")
+        stats = prev_stats.concat(daily_stat)
+        s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(stats),
+          "#upload-xml",
+          "#upload-json-stats #progress_msg",
+          "#upload-json-stats #progress_bar"
+
     return
 
-  s3 = new S3()
+
+  zipWrapper "#upload-xml #upload-form-file", (blob) -> 
+    #console.log("starting ajax...")
+    #console.log("blog: " + blob)
+    s3.putObjectWithProgress "zip/20150726/COMETCDC.zip", blob, 
+      "#upload-xml #upload-form-file",
+      "#upload-xml #progress_msg",
+      "#upload-xml #progress_bar"
+
 
   s3.getObject "csv/dial_gauge.csv", (url) ->
     d3.csv url, (error, csv) ->
@@ -779,5 +966,3 @@ $ ->
           Tension.plot(data)
           TensionHistogram.plot(data,"sense")
           TensionHistogram.plot(data,"field")
-
-

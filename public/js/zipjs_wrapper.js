@@ -124,6 +124,7 @@
 })(this);
 
 $(function() {
+      /*
       zipWrapper("#upload-xml #upload-form-file", function(blob) {
             var name = "#upload-xml";
             var url = "/zip_upload";
@@ -167,4 +168,5 @@ $(function() {
                      },
                });
          });
+         */
    });
