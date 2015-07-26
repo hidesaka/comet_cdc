@@ -5,6 +5,8 @@ require 'time'
 require 'open-uri'
 require 'json'
 require 'fileutils'
+require 'dotenv'
+require 'zip'
 
 require 'aws-sdk'
 require 'xml'
@@ -13,6 +15,7 @@ $local_xml_dir="../xml"
 $local_daily_dir="../daily"
 $local_stats_dir="../stats"
 $s3_xml_dir="xml/"
+$s3_zip_dir="zip/"
 $s3_daily_dir="daily/"
 $s3_stats_dir="stats/"
 
@@ -208,8 +211,10 @@ def s3_file_list(start_date, end_date)
    s3_setup
 
    prev_date_dir = "none"
-   $s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
-      if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
+   #$s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
+    #  if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
+   $s3.list_objects(bucket: "comet-cdc", prefix: $s3_zip_dir).contents.each do |obj|
+      if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.zip/)
          date_dir = "#{$1}#{$2}#{$3}"
          date = "#{$1}/#{$2}/#{$3}"
          utime = Time.parse(date)
@@ -265,7 +270,16 @@ def s3_write_daily_datum(start_date, end_date)
       #puts "path -> #{a[:path]}"
       #puts "date -> #{a[:date]}"
       #puts "date_dir -> #{a[:date_dir]}"
-      data = make_daily_data(open(a[:path]) { |f| f.read } )
+#      data = make_daily_data(open(a[:path]) { |f| f.read } )
+      xml=""
+      open(a[:path]) do |file|
+         Zip::File.open_buffer(file.read) do |zf|
+            zf.each do |entry|
+               xml = entry.get_input_stream.read
+            end
+         end
+      end
+      data = make_daily_data(xml)
       s3_write_json("#{$s3_daily_dir}/#{a[:date_dir]}/data.json", data)
       s3_write_json("#{$s3_daily_dir}/current/data.json", data)
    end
@@ -305,6 +319,7 @@ List of functions
 END
 
 if $0 == __FILE__
+   Dotenv.load
    if ARGV.size == 0
       puts USAGE
       exit

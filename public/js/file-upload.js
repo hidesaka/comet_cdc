@@ -26,10 +26,10 @@ function upload(name, url) {
                         $(name + " #progress_msg").height("30px");
                         $(name + " #progress_msg").html(progre+"%");
                         $(name + " #progress_bar").attr("value", progre);
-               }, false); 
-             }
-             return XHR;
-         },
-   });
-   return false;
-}
+                  }, false); 
+               }
+               return XHR;
+            },
+      });
+      return false;
+   }

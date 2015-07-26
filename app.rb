@@ -9,8 +9,17 @@ require 'aws-sdk'
 require 'json'
 require 'eventmachine'
 
+
+#require 'logger'
+#logdir = File.dirname(__FILE__)
+#logger = Logger.new(logdir + "/log.txt")
+
 configure :production do
    require 'newrelic_rpm'
+end
+
+use Rack::Auth::Basic do |username, password|
+     username == ENV['BASIC_AUTH_USERNAME'] && password == ENV['BASIC_AUTH_PASSWORD']
 end
 
 get '/err/:message' do |msg|
@@ -21,6 +30,48 @@ end
 
 get '/' do 
    erb :index
+end
+
+post '/zip_upload' do 
+
+   #logger.debug("Logger.debug")
+   #logger.debug(params)
+   if params[:zip]
+      #logger.debug("params[:zip]")
+      #logger.debug(params[:zip][:tempfile].read)
+      begin 
+         #today = Time.now
+         today = Time.local(2015,7,22,20,0,0)
+         dir_name = sprintf("%d%02d%02d",today.year, today.month, today.day)
+         date = sprintf("%d/%02d/%02d",today.year, today.month, today.day)
+
+         rd, wr = IO.pipe
+         fork do
+            rd.close
+            body = params[:zip][:tempfile].read
+            s3_write("zip/#{dir_name}/COMETCDC.zip", body)
+            s3_write_daily_datum(date, date) # daily/20150611/data.json
+            s3_write_daily_stats(date, date) # daily/20150611/stat.json
+            wr.write "success to upload COMETCDC.zip, daily_datum, and daily_stats"
+         end
+
+         fork do
+            rd.close
+            s3_write_stats(date) # stats/stats.json
+            wr.write "success to upload stats"
+         end
+
+         wr.close
+         Process.waitall
+         return rd.read
+
+      rescue => err
+         return err.message
+      end
+   else
+      return "params[:zip] is null"
+   end
+
 end
 
 post '/xml_upload' do 
