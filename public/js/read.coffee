@@ -258,7 +258,7 @@ class S3
          callback @s3.getSignedUrl('getObject', {Bucket: @s3BucketName, Key: obj.Key})
 
 class DialGauge
-  read_csv: (csv) ->
+  @read_csv: (csv) ->
     j=0
     data=[]
     for ent in csv
@@ -301,7 +301,7 @@ class DialGauge
     #console.log data
     data
 
-  plot: (csv) ->
+  @plot: (csv) ->
     gauge_data = @read_csv(csv)
     xdomain_gauge = d3.extent(gauge_data, (d) -> d.utime)
     ydomain_gauge = d3.extent(gauge_data, (d) -> d.disp_um)
@@ -316,24 +316,24 @@ class DialGauge
                            stroke_width: "1px"
                          }
                          [
-                           label:"10deg",  stroke:'#ed5454', fill: "#f8d7d7", ypos:"66" 
-                           label:"90deg",  stroke:'#3874e3', fill: "#bdd0f4", ypos:"83" 
-                           label:"180deg", stroke:'#228b22', fill: "#9acd32", ypos:"100"
-                           label:"270deg", stroke:'#ffa500', fill: "#ffead6", ypos:"117"
+                           {label:"10deg",  stroke:'#ed5454', fill: "#f8d7d7", ypos:"66"},
+                           {label:"90deg",  stroke:'#3874e3', fill: "#bdd0f4", ypos:"83"},
+                           {label:"180deg", stroke:'#228b22', fill: "#9acd32", ypos:"100"},
+                           {label:"270deg", stroke:'#ffa500', fill: "#ffead6", ypos:"117"}
                          ]
                          {
                            label: [ {data: [ "date", "time", (d) -> d.disp_um.toFixed(0)], separator:' ', postfix:' um'}]
                          }
 
-class TensionBar
+class Loading
   @read_csv: (csv) ->
     data=[]
     for ent in csv
       d1 = ent["Date"]
       d2 = ent["Tension_kg"]
+      continue if ( _.isEmpty(d1) || _.isEmpty(d2))
       #console.log("d1 " + d1)
       #console.log("d2 " + d2)
-      continue if ( _.isEmpty(d1) || _.isEmpty(d2))
   
       utime = Date.parse(d1)
       #console.log("csv " + csv[i] + " Date " + d1 +  " utime " + utime);
@@ -341,7 +341,8 @@ class TensionBar
  
       data.push { utime: utime, tension_kg: tension_kg }
   
-    #console.log(data);
+    #console.log("==Loading==")
+    #console.log(data)
     data
 
   @plot: (csv, dailies) =>
@@ -351,21 +352,46 @@ class TensionBar
     #  console.log("bar_data.utime " + bar.utime)
     #  console.log("bar_data.tension_kg " + bar.tension_kg)
     
+    # daily    bar_data
+    # 5/26     5/26
+    # 5/27     6/23
+    # 5/28     6/26
+    # 5/29     
+    # ....
+    # 6/23
+    # ....
+    # 7/22
     for daily,i in dailies
-      jlast = 0
+      jnext = -1
+      # search for bar_data until utime is larger than this daily.utime
+      # Do not break
       for bar,j in bar_data
         #console.log("i " + i)
         #console.log("j " + j)
-        #console.log(" dailies.utime " + dailies[i].utime)
+        #console.log("dailies.utime " + dailies[i].utime)
         #console.log("bar_data.utime " + bar_data[j].utime)
         #console.log("bar_data.tension_kg " + bar_data[j].tension_kg)
-        jlast = j -1
-        break if (bar.utime > daily.utime) 
-        #console.log("breaked at i " + i + " j " + j);
+        if (bar.utime > daily.utime)
+          jnext = j
+          break
    
-      daily.bar_tension_kg = bar_data[jlast].tension_kg
-      daily.all_tension_kg = daily.wire_tension_kg + bar_data[jlast].tension_kg
+      #console.log("jnext #{jnext}")
+      jnext = bar_data.length if (jnext==-1)
+      daily.bar_tension_kg = bar_data[jnext-1].tension_kg
+      daily.all_tension_kg = daily.wire_tension_kg + bar_data[jnext-1].tension_kg
   
+  
+    # Wire
+    xdomain = d3.extent(dailies, (d) ->  d.utime)
+    labelA = ((d) -> d.date)
+    ydomain_wire = [0, dailies[dailies.length-1].wire_tension_kg]
+    #/console.log(ydomain_wire)
+    svg_wire = append_svg("#menu_load_wire")
+    frame_wire = make_frame(svg_wire, "date", "loading of wires (kg)", xdomain, ydomain_wire, {xaxis_type: "time"})
+    makeScatterPlot(frame_wire, dailies, "utime", "wire_tension_kg", { stroke: "#ff1493", fill: "#ff69b4", stroke_width: "1px", line_stroke: "#ff1493" },[],
+              { label: [ { data: [ labelA, (d) -> "#{d.wire_tension_kg.toFixed(1) kg}" ], separator:' '} ]})
+
+
     # TensionBar + Wire
     ydomain_all = [0.9*d3.min(dailies, (d) -> d.all_tension_kg), 1.1*d3.max(dailies, (d) -> d.all_tension_kg)]
     svg_all = append_svg("#menu_load_all")
@@ -398,16 +424,25 @@ class Progress
     ydomain_day = [0, d3.max(dailies, (d) -> d.num_day)]
     ydomain_ave = [0, d3.max(dailies, (d) -> d.num_ave)]
     ydomain_bad = [0, d3.max(dailies, (d) -> d.num_bad)]
+
+    num_bins = 20
+    day_space = xdomain.length / num_bins
+    day_space = parseInt(day_space)
+    console.log("num_bins #{num_bins}")
+    console.log("day_space #{day_space}")
+    console.log("xdomain.length #{xdomain.length}")
+    xaxis_tickValues = (d.days for d in dailies by day_space)
+    console.log("xaxis_tickValues #{xaxis_tickValues}")
   
     svg_progress_sum = append_svg("#menu_progress #progress_sum")
     svg_progress_day = append_svg("#menu_progress #progress_day")
     svg_progress_ave = append_svg("#menu_progress #progress_ave")
     svg_progress_bad = append_svg("#menu_progress #bad_wires")
   
-    frame_progress_sum = make_frame(svg_progress_sum, "days", "total # of stringed wires",     xdomain, ydomain_sum, {xaxis_type: "roundBands"})
-    frame_progress_day = make_frame(svg_progress_day, "days", "# of stringed wires",           xdomain, ydomain_day, {xaxis_type: "roundBands"})
-    frame_progress_ave = make_frame(svg_progress_ave, "days", "ave # of stringed wires",       xdomain, ydomain_ave, {xaxis_type: "roundBands"})
-    frame_progress_bad = make_frame(svg_progress_bad, "days", "# of wires to be re-stringed",  xdomain, ydomain_bad, {xaxis_type: "roundBands"})
+    frame_progress_sum = make_frame(svg_progress_sum, "days", "total # of stringed wires",     xdomain, ydomain_sum, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
+    frame_progress_day = make_frame(svg_progress_day, "days", "# of stringed wires",           xdomain, ydomain_day, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
+    frame_progress_ave = make_frame(svg_progress_ave, "days", "ave # of stringed wires",       xdomain, ydomain_ave, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
+    frame_progress_bad = make_frame(svg_progress_bad, "days", "# of wires to be re-stringed",  xdomain, ydomain_bad, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
   
     $("#last_day").html("Finished on "+new Date(_.last(dailies).last_utime).toLocaleDateString("ja-JP"))
     makeBarChart(frame_progress_sum, dailies, "days","num_sum", "#D70071", {label: [ {data: ["num_sum"]} ]})
@@ -416,9 +451,11 @@ class Progress
     makeBarChart(frame_progress_bad, dailies, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]})
 
   @plotLayerDays = (data) ->
+    #console.log(data)
     #{"dataID":2,"layerID":37,"wireID":2,"tBase":"80","density":3.359e-09,"date":"2015/06/12","freq":49.89,"tens":78.6}
     layerData = _.groupBy(data, (d) -> parseInt(d.layerID))
-    console.log(layerData)
+    #console.log("==layerData==")
+    #console.log(layerData)
     layerNumbers = _.keys(layerData)
     xmin = _.min(layerNumbers, _.identity)
     xmax = _.max(layerNumbers, _.identity)
@@ -428,10 +465,10 @@ class Progress
     #console.log("xmin "+ xmin);
     #console.log("xmax "+ xmax);
     #mydata = _.range(1,40).map((d)-> {layerID: d, num_days: 0})
-    mydata = ({layerID: d, num_days: 0} for d in [1..40])
-    #console.log(mydata);
+    mydata = ({layerID: d, num_days: 0} for d in [1..39])
+    #console.log(mydata)
     _.each layerData, (v, layerID) -> 
-       days = _.groupBy(v, (d2) -> d3.date)
+       days = _.groupBy(v, (d2) -> d2.date)
        #console.log(layerID)
        #console.log(days)
        #console.log(mydata[layerID-1])
@@ -455,19 +492,6 @@ class Progress
     frame = make_frame(svg, "layer_id", "days", xdomain, ydomain, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
     makeBarChart(frame, mydata, "layerID","num_days", "#A8BE62", {label: [ {data: ["layerID"], prefix: 'layer_id '}, {data: ["num_days"], postfix: ' days'} ]})
        
-class Load
-  @plot: (dailies) ->
-    xdomain = d3.extent(dailies, (d) ->  d.utime)
-    labelA = ((d) -> d.date)
-  
-    # Wire
-    ydomain_wire = [0, dailies[dailies.length-1].wire_tension_kg]
-    #/console.log(ydomain_wire)
-    svg_wire = append_svg("#menu_load_wire")
-    frame_wire = make_frame(svg_wire, "date", "loading of wires (kg)", xdomain, ydomain_wire, {xaxis_type: "time"})
-    makeScatterPlot(frame_wire, dailies, "utime", "wire_tension_kg", { stroke: "#ff1493", fill: "#ff69b4", stroke_width: "1px", line_stroke: "#ff1493" },[],
-              { label: [ { data: [ labelA, (d) -> "#{d.wire_tension_kg.toFixed(1) kg}" ], separator:' '} ]})
-  
 
 class Endplate
   @plot: (data, current) ->
@@ -500,7 +524,7 @@ class Endplate
         .attr("stroke", (d) -> (d.tbase=="50")?"#f8d7d7":"#bdd0f4")
         .attr("fill",   (d) -> if (d.tBase=="50") then "#ed5454" else "#3874e3")
         .attr("stroke_width", "1px")
-        .each "end", (current) ->
+        .each "end", ->
             #r1 = parseFloat(current_num_layers/39.0*100).toFixed(0)
             r2 = parseFloat(current.num_sum/numTotalWires*100).toFixed(0)
             r3 = parseFloat(current.num_sense/4986*100).toFixed(0)
@@ -532,9 +556,10 @@ class Endplate
                .attr("fill", (_, i) -> if i==2 then "#ed5454" else if i==3 then "#3874e3" else "black")
                
 
+g_layerCheckList = []
 class LayerSelection
   @plot: (data) ->
-    @layerCheckList = (true for i in [0..39])
+    g_layerCheckList = (true for i in [0..39])
     #@layerCheckList = _.map(_.range(39), (i) -> true)
     
     layer_selection = ({layerid: i} for i in [0..40])
@@ -559,68 +584,70 @@ class LayerSelection
                .on "click", (d) -> 
                  chk = d3.select(this).property("checked")
                  msg = "layer #{d.layerid} -> #{chk}"
-                 @layerCheckList[d.layerid-1] = chk
+                 g_layerCheckList[d.layerid-1] = chk
                  #console.log(msg);
-                 Tension.plot(data, @layerCheckList)
+                 Tension.plot(data)
                  TensionHistogram.plot(data, "sense")
                  TensionHistogram.plot(data, "field")
   
-     p = d3.select("#menu_tension")
-           .append("p")
-           .attr("id","layer_selection")
+    p = d3.select("#menu_tension")
+          .append("p")
+          .attr("id","layer_selection")
   
-     texts = ["checkall","uncheckall"]
-     p.insert("select")
-      .attr("id","layer_selection2")
-      .selectAll(".dummy")
-      .data(texts)
-      .enter()
-      .append("option")
-      .attr("value", (d) -> d)
-      .append("text").text((d) -> d)
+    texts = ["checkall","uncheckall"]
+    p.insert("select")
+     .attr("id","layer_selection2")
+     .selectAll(".dummy")
+     .data(texts)
+     .enter()
+     .append("option")
+     .attr("value", (d) -> d)
+     .append("text").text((d) -> d)
   
-     d3.select("#layer_selection2")
-       .on "change", (d) ->
-         val = d3.select(this).property("value")
-         #console.log("val -> "+ val)
-         chk = if (val=="checkall") then true else false
-         labels.property("checked",chk)
-         @layerCheckList = (chk for i in [0...39])
-         #console.log("changed")
-         Tension.plot(data, @layerCheckList)
-         TensionHistogram.plot(data,"sense")
-         TensionHistogram.plot(data,"field")
+    d3.select("#layer_selection2")
+      .on "change", (d) ->
+        val = d3.select(this).property("value")
+        #console.log("val -> "+ val)
+        chk = if (val=="checkall") then true else false
+        labels.property("checked",chk)
+        g_layerCheckList = (chk for i in [0...39])
+        #console.log("changed")
+        Tension.plot(data)
+        TensionHistogram.plot(data,"sense")
+        TensionHistogram.plot(data,"field")
 
 
 class Tension
-  constructor: (data) ->
-    xdomain_tension = [0, d3.max(data, (d) -> d.wireID)]
-    ydomain_tension = [0, d3.max(data, (d) -> d.tens)]
-    svg_tension = append_svg("#menu_tension")
-    frame_tension = make_frame(svg_tension, "wire_id", "tension (g)", xdomain_tension, ydomain_tension, {xaxis_type: "linear"})
-    LayerSelection.plot(data)
+  @first_call = true
+  @plot: (data) ->
+    if @first_call
+      xdomain_tension = [0, d3.max(data, (d) -> d.wireID)]
+      ydomain_tension = [0, d3.max(data, (d) -> d.tens)]
+      svg_tension = append_svg("#menu_tension")
+      @frame_tension = make_frame(svg_tension, "wire_id", "tension (g)", xdomain_tension, ydomain_tension, {xaxis_type: "linear"})
+      LayerSelection.plot(data)
+      @first_call = false
 
-  @plot: (data, layerCheckList) ->
     xmin = d3.min(data, (d) -> d.wireID)
     xmax = d3.max(data, (d) -> d.wireID)
-    makeLine(frame_tension, "tension_limit_sense", [ { x:xmin, y: 45}, {x:xmax, y: 45} ])
-    makeLine(frame_tension, "tension_limit_sense", [ { x:xmin, y: 55}, {x:xmax, y: 55} ])
-    makeLine(frame_tension, "tension_limit_field", [ { x:xmin, y: 72}, {x:xmax, y: 72} ])
-    makeLine(frame_tension, "tension_limit_field", [ { x:xmin, y: 88}, {x:xmax, y: 88} ])
+    makeLine(@frame_tension, "tension_limit_sense", [ { x:xmin, y: 45}, {x:xmax, y: 45} ])
+    makeLine(@frame_tension, "tension_limit_sense", [ { x:xmin, y: 55}, {x:xmax, y: 55} ])
+    makeLine(@frame_tension, "tension_limit_field", [ { x:xmin, y: 72}, {x:xmax, y: 72} ])
+    makeLine(@frame_tension, "tension_limit_field", [ { x:xmin, y: 88}, {x:xmax, y: 88} ])
   
     #console.log(layerCheckList);
     data_select = _.filter data, (d) ->
       #console.log(layerCheckList[d.layerID-1])
-      layerCheckList[d.layerID-1]
+      g_layerCheckList[d.layerID-1]
   
     #console.log("data->");
     #console.log(data);
     #console.log("data_select-> " + data_select.length);
     #console.log(data_select);
-    makeScatterPlot frame_tension, data_select, "wireID", "tens", 
+    makeScatterPlot @frame_tension, data_select, "wireID", "tens", 
                 {
-                  stroke: (d) -> if (d.tBase==80) then "#3874e3" else "#ed5454"
-                  fill:   (d) -> if (d.tBase==80) then "#bdd0f4" else "#f8d7d7"
+                  stroke: ((d) -> if (d.tBase=="80") then "#3874e3" else "#ed5454"),
+                  fill:   ((d) -> if (d.tBase=="80") then "#bdd0f4" else "#f8d7d7"),
                   stroke_width: (d) -> if (d.tens<d.tBase*0.9 || d.tens>d.tBase*1.1) then "1px" else "0px"
                 },
                 [
@@ -634,10 +661,9 @@ class Tension
 
 
 class TensionHistogram 
-  constuctor: ->
-    @svg_tension_hist = {}
-    @frame_tension_hist = {}
-    @first_call_hist = {"sense":true, "field":true}
+  @svg_tension_hist = {}
+  @frame_tension_hist = {}
+  @first_call_hist = {"sense":true, "field":true}
 
   @plot: (data, sense_or_field) ->
     #console.log("plotTensionHistogram");
@@ -663,7 +689,7 @@ class TensionHistogram
     #console.log(xaxis_tickValues);
 
     # test data
-    #data = [
+    #data_select = [
     #   {tens:70},
     #   {tens:72},
     #   {tens:78},
@@ -672,7 +698,7 @@ class TensionHistogram
     #   {tens:70},
     #   {tens:85},
     #   {tens:81}
-    #];
+    #]
     data_select = _.filter data, (d) ->
       is_sense = d.tBase=="50"
       is_field = d.tBase=="80"
@@ -683,10 +709,13 @@ class TensionHistogram
         return false
         #console.log(layerCheckList[d.layerID-1]);
       else 
-        return layerCheckList[d.layerID-1]
+        return g_layerCheckList[d.layerID-1]
+
+    #console.log("===data_select==")
+    #console.log(data_select)
 
     entries = _.countBy(data_select, (d) -> Math.floor((d.tens - xmin)/xstep))
-    bindatum = _.map(xdomain, (e, i) -> {itens: xdomain[i], ents: if e? then e else 0})
+    bindatum = _.map(xdomain, (e, i) -> {itens: xdomain[i], ents: if entries[i]? then entries[i] else 0})
 
     ydomain = [0, d3.max(bindatum, (d) -> d.ents)]
     #console.log("xdomain");
@@ -697,7 +726,7 @@ class TensionHistogram
     #console.log(bindatum);
     #console.log("ydomain");
     #console.log(ydomain);
-    if first_call_hist[sense_or_field]
+    if @first_call_hist[sense_or_field]
       d3.select("#menu_tension").append("div").attr("id","menu_tension_#{sense_or_field}")
       @svg_tension_hist[sense_or_field] = append_svg("#menu_tension_#{sense_or_field}")
       @first_call_hist[sense_or_field] = false
@@ -708,8 +737,8 @@ class TensionHistogram
     tension_rms =  _.reduce(data_select, ((memo, d) -> memo + Math.pow(d.tens-tension_mean,2)), 0) /data_select.length
     tension_rms = Math.sqrt(tension_rms)
     frac_rms = (tension_rms/tension_mean*100).toFixed(0)
-    makeStatBox(frame_tension_hist[sense_or_field], w-250, 20, "Mean #{tension_mean.toFixed(2)} g")
-    makeStatBox(frame_tension_hist[sense_or_field], w-250, 40, "Rms #{tension_rms.toFixed(2)} g (#{frac_rms} '%')")
+    makeStatBox(@frame_tension_hist[sense_or_field], w-250, 20, "Mean #{tension_mean.toFixed(2)} g")
+    makeStatBox(@frame_tension_hist[sense_or_field], w-250, 40, "Rms #{tension_rms.toFixed(2)} g (#{frac_rms} %)")
 
 
 $ ->
@@ -728,28 +757,27 @@ $ ->
     return
 
   s3 = new S3()
+
+  s3.getObject "csv/dial_gauge.csv", (url) ->
+    d3.csv url, (error, csv) ->
+      DialGauge.plot(csv)
+
   s3.getObject "stats/stats.json", (url) ->
     d3.json url, (error, dailies) ->
       console.log(dailies)
 
       Progress.plot(dailies)
-      Load.plot(dailies)
 
       s3.getObject "csv/tension_bar.csv", (url) ->
        d3.csv url, (error, csv) ->
-       TensionBar.plot(csv, dailies)
+         Loading.plot(csv, dailies)
 
       s3.getObject "daily/current/data.json", (url) ->
-        #json_name = "./daily/current/data.json";
-        #{"dataID":2,"layerID":37,"wireID":2,"tBase":"80","density":3.359e-09,"date":"2015/06/12","freq":49.89,"tens":78.6}
         d3.json url, (error, data) ->
+          Progress.plotLayerDays(data)
           Endplate.plot(data, dailies[dailies.length-1])
           Tension.plot(data)
           TensionHistogram.plot(data,"sense")
           TensionHistogram.plot(data,"field")
-          Progress.plotLayerDays(data)
 
 
-  s3.getObject "csv/dial_gauge.csv", (url) ->
-     d3.csv url, (error, csv) ->
-       DialGauge.plot(csv)
