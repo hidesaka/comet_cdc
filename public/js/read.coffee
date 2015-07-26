@@ -700,7 +700,7 @@ class LayerSelection
     g_layerCheckList = (true for i in [0..39])
     #@layerCheckList = _.map(_.range(39), (i) -> true)
     
-    layer_selection = ({layerid: i} for i in [0..40])
+    layer_selection = ({layerid: i} for i in [0..39])
     
     #console.log("layer_selection");
     #console.log(layer_selection);

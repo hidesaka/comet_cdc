@@ -1028,7 +1028,7 @@
       layer_selection = (function() {
         var m, results;
         results = [];
-        for (i = m = 0; m <= 40; i = ++m) {
+        for (i = m = 0; m <= 39; i = ++m) {
           results.push({
             layerid: i
           });
