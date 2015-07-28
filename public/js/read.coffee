@@ -896,10 +896,10 @@ $ ->
     xmlDoc = parser.parseFromString(e.target.result, "text/xml")
     #console.log xmlDoc
 
-    [today_date, today_dir] = get_today_name()
-    #today_date = "2015/07/24" # debug
-    #today_dir  = "20150724" # debug
-    #console.log("TODAY: #{today_date} #{today_dir}")
+    #[today_date, today_dir] = get_today_name()
+    today_date = "2015/07/27" # debug
+    today_dir  = "20150727" # debug
+    console.log("TODAY: #{today_date} #{today_dir}")
 
     #daily_dir = "test"
     #stats_dir = "test"

@@ -1326,10 +1326,12 @@
       reader.readAsText(item);
     });
     onFileLoad = function(e) {
-      var daily_data, daily_dir, parser, ref1, stats_dir, today_date, today_dir, xmlDoc;
+      var daily_data, daily_dir, parser, stats_dir, today_date, today_dir, xmlDoc;
       parser = new DOMParser();
       xmlDoc = parser.parseFromString(e.target.result, "text/xml");
-      ref1 = get_today_name(), today_date = ref1[0], today_dir = ref1[1];
+      today_date = "2015/07/27";
+      today_dir = "20150727";
+      console.log("TODAY: " + today_date + " " + today_dir);
       daily_dir = "daily/" + today_dir;
       stats_dir = "stats/" + today_dir;
       daily_data = make_daily_data(xmlDoc);
