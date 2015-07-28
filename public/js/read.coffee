@@ -883,6 +883,22 @@ $ ->
 
   s3 = new S3()
 
+
+  $("#upload-csv #upload-form-file").change ->
+    #console.log "called onFileInput"
+    item = @files[0]
+    reader = new FileReader()
+    reader.onload = onFileLoadCSV
+    reader.readAsText(item)
+    return
+
+  onFileLoadCSV = (e) -> 
+    body = e.target.result
+    console.log body
+
+
+
+
   $("#upload-xml #upload-form-file").change ->
     #console.log "called onFileInput"
     item = @files[0]
