@@ -955,7 +955,7 @@ $ ->
   zipWrapper "#upload-xml #upload-form-file", (blob) -> 
     #console.log("starting ajax...")
     #console.log("blog: " + blob)
-    s3.putObjectWithProgress "zip/20150726/COMETCDC.zip", blob, 
+    s3.putObjectWithProgress "zip/#{today_dir}/COMETCDC.zip", blob, 
       "#upload-xml #upload-form-file",
       "#upload-xml #progress_msg",
       "#upload-xml #progress_bar"
