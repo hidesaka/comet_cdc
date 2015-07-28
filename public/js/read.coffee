@@ -36,18 +36,18 @@ for num,i in numWires
 #############
 # Functions #
 #############
-get_today_name = (xmlDoc) ->
-  console.log xmlDoc
-  return
-  #today = new Date;
-  year = today.getFullYear()
-  month = today.getMonth()+1
-  date = today.getDate()
-  month2 = ("00"+month).substr(-2)
-  date2  = ("00"+date).substr(-2)
-  format_date = "#{year}/#{month2}/#{date2}"
-  dirname = format_date.replace(/\//g, '')
-  [format_date, dirname]
+#get_today_name = (xmlDoc) ->
+#  console.log xmlDoc
+#  return
+#  #today = new Date;
+#  year = today.getFullYear()
+#  month = today.getMonth()+1
+#  date = today.getDate()
+#  month2 = ("00"+month).substr(-2)
+#  date2  = ("00"+date).substr(-2)
+#  format_date = "#{year}/#{month2}/#{date2}"
+#  dirname = format_date.replace(/\//g, '')
+#  [format_date, dirname]
 
 
 get_last_date = (now_utime_sec, num_wires, num_ave) ->
@@ -582,9 +582,7 @@ class Progress
     console.log("day_space #{day_space}")
     console.log("xdomain.length #{xdomain.length}")
     xaxis_tickValues = (d.days for d in dailies by day_space)
-    xaxis_tickValues2 = (d.days for d in dailies)
     console.log("xaxis_tickValues #{xaxis_tickValues}")
-    console.log("xaxis_tickValues2 #{xaxis_tickValues2}")
   
     svg_progress_sum = append_svg("#menu_progress #progress_sum")
     svg_progress_day = append_svg("#menu_progress #progress_day")
@@ -902,19 +900,17 @@ $ ->
   s3 = new S3()
 
 
-  $("#upload-csv #upload-form-file").change ->
-    #console.log "called onFileInput"
-    item = @files[0]
-    reader = new FileReader()
-    reader.onload = onFileLoadCSV
-    reader.readAsText(item)
-    return
+  #$("#upload-csv #upload-form-file").change ->
+  #  #console.log "called onFileInput"
+  #  item = @files[0]
+  #  reader = new FileReader()
+  #  reader.onload = onFileLoadCSV
+  #  reader.readAsText(item)
+  #  return
 
-  onFileLoadCSV = (e) -> 
-    body = e.target.result
-    console.log body
-
-
+  #onFileLoadCSV = (e) -> 
+  #  body = e.target.result
+  #  #console.log body
 
 
   $("#upload-xml #upload-form-file").change ->
@@ -1001,7 +997,7 @@ $ ->
 
   s3.getObject "stats/stats.json", (url) ->
     d3.json url, (error, dailies) ->
-      console.log(dailies)
+      #console.log(dailies)
 
       Progress.plot(dailies)
 
@@ -1011,8 +1007,8 @@ $ ->
 
       s3.getObject "daily/current/data.json", (url) ->
         d3.json url, (error, data) ->
-          console.log("daily/current/data.json")
-          console.log(data)
+          #console.log("daily/current/data.json")
+          #console.log(data)
           Progress.plotLayerDays(data)
           Endplate.plot(data, dailies[dailies.length-1])
           Tension.plot(data)
