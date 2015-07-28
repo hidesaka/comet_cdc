@@ -1316,8 +1316,20 @@
   })();
 
   $(function() {
-    var onFileLoad, s3;
+    var onFileLoad, onFileLoadCSV, s3;
     s3 = new S3();
+    $("#upload-csv #upload-form-file").change(function() {
+      var item, reader;
+      item = this.files[0];
+      reader = new FileReader();
+      reader.onload = onFileLoadCSV;
+      reader.readAsText(item);
+    });
+    onFileLoadCSV = function(e) {
+      var body;
+      body = e.target.result;
+      return console.log(body);
+    };
     $("#upload-xml #upload-form-file").change(function() {
       var item, reader;
       item = this.files[0];
@@ -1348,7 +1360,9 @@
       });
     };
     zipWrapper("#upload-xml #upload-form-file", function(blob) {
-      return s3.putObjectWithProgress("zip/20150726/COMETCDC.zip", blob, "#upload-xml #upload-form-file", "#upload-xml #progress_msg", "#upload-xml #progress_bar");
+      console.log("starting ajax...");
+      console.log("blog: " + blob);
+      return s3.putObjectWithProgress("zip/" + today_dir + "/COMETCDC.zip", blob, "#upload-xml #upload-form-file", "#upload-xml #progress_msg", "#upload-xml #progress_bar");
     });
     s3.getObject("csv/dial_gauge.csv", function(url) {
       return d3.csv(url, function(error, csv) {
