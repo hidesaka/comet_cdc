@@ -923,7 +923,7 @@ $ ->
     #daily_dir = "test"
     #stats_dir = "test"
     daily_dir = "daily/#{today_dir}"
-    stats_dir = "stats/#{today_dir}"
+    stats_dir = "stats"
 
     # daily_data
     daily_data = make_daily_data(xmlDoc)

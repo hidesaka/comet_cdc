@@ -1347,7 +1347,7 @@
       today_dir = "20150727";
       console.log("TODAY: " + today_date + " " + today_dir);
       daily_dir = "daily/" + today_dir;
-      stats_dir = "stats/" + today_dir;
+      stats_dir = "stats";
       daily_data = make_daily_data(xmlDoc);
       s3.putObjectWithProgress(daily_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-daily-data #progress_msg", "#upload-json-daily-data #progress_bar");
       s3.getJSON_prev_stat(today_dir, function(prev_stat) {
