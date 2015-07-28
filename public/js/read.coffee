@@ -92,7 +92,7 @@ make_daily_data = (xml) ->
     layer = xml.getElementsByTagName("T_Data#{layerid}")
     for wire,i in layer
       dataID = wire.getElementsByTagName("DataID")[0].childNodes[0].nodeValue
-      wireID = wire.getElementsByTagName("WireID")[0].childNodes[0].nodeValue
+      wireID = parseInt(wire.getElementsByTagName("WireID")[0].childNodes[0].nodeValue)
       continue if not wire.getElementsByTagName("Density1")[0]
       density = wire.getElementsByTagName("Density1")[0].childNodes[0].nodeValue
       tBase = wire.getElementsByTagName("TBase")[0].childNodes[0].nodeValue
@@ -121,7 +121,7 @@ make_stat = (today_date, prev_stat, daily_data) ->
    num_day = if not prev_stat? then daily_data.length else daily_data.length - prev_stat.num_sum
    wire_tension_kg = _.reduce(daily_data, ((memo, d) -> memo + d.tens*0.001), 0)
 
-   num_ave = daily_data.length/days
+   num_ave = parseInt(daily_data.length/days)
    num_bad = 0 
    for d in daily_data
      num_bad++ if d.tBase=="50" and (d.tens<45.0 or d.tens>55.0)
@@ -582,7 +582,9 @@ class Progress
     console.log("day_space #{day_space}")
     console.log("xdomain.length #{xdomain.length}")
     xaxis_tickValues = (d.days for d in dailies by day_space)
+    xaxis_tickValues2 = (d.days for d in dailies)
     console.log("xaxis_tickValues #{xaxis_tickValues}")
+    console.log("xaxis_tickValues2 #{xaxis_tickValues2}")
   
     svg_progress_sum = append_svg("#menu_progress #progress_sum")
     svg_progress_day = append_svg("#menu_progress #progress_day")
@@ -771,15 +773,19 @@ class Tension
   @first_call = true
   @plot: (data) ->
     if @first_call
-      xdomain_tension = [0, d3.max(data, (d) -> d.wireID)]
-      ydomain_tension = [0, d3.max(data, (d) -> d.tens)]
+      #console.log("Tension: @plot data")
+      #for d in data
+      #  console.log "d.wireID #{d.wireID}"
+      #console.log("Tension: xdomain_tension #{d3.max(data, (d) -> parseInt(d.wireID))}")
+      xdomain_tension = [0, d3.max(data, (d) -> parseInt(d.wireID))]
+      ydomain_tension = [0, d3.max(data, (d) -> parseFloat(d.tens))]
       svg_tension = append_svg("#menu_tension")
       @frame_tension = make_frame(svg_tension, "wire_id", "tension (g)", xdomain_tension, ydomain_tension, {xaxis_type: "linear"})
       LayerSelection.plot(data)
       @first_call = false
 
-    xmin = d3.min(data, (d) -> d.wireID)
-    xmax = d3.max(data, (d) -> d.wireID)
+    xmin = d3.min(data, (d) -> parseInt(d.wireID))
+    xmax = d3.max(data, (d) -> parseFloat(d.wireID))
     makeLine(@frame_tension, "tension_limit_sense", [ { x:xmin, y: 45}, {x:xmax, y: 45} ])
     makeLine(@frame_tension, "tension_limit_sense", [ { x:xmin, y: 55}, {x:xmax, y: 55} ])
     makeLine(@frame_tension, "tension_limit_field", [ { x:xmin, y: 72}, {x:xmax, y: 72} ])
@@ -883,8 +889,8 @@ class TensionHistogram
 
     @frame_tension_hist[sense_or_field] = make_frame(@svg_tension_hist[sense_or_field], "tension (g)", "#/g", xdomain, ydomain, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
     makeBarChart(@frame_tension_hist[sense_or_field], bindatum, "itens","ents", (-> if (sense_or_field=="sense") then "#ed5454" else "#3874e3"), {label: [ {data: ["ents"]} ]})
-    tension_mean = _.reduce(data_select, ((memo, d) -> memo + d.tens), 0) /data_select.length
-    tension_rms =  _.reduce(data_select, ((memo, d) -> memo + Math.pow(d.tens-tension_mean,2)), 0) /data_select.length
+    tension_mean = _.reduce(data_select, ((memo, d) -> memo + parseFloat(d.tens)), 0) /data_select.length
+    tension_rms =  _.reduce(data_select, ((memo, d) -> memo + Math.pow(parseFloat(d.tens)-tension_mean,2)), 0) /data_select.length
     tension_rms = Math.sqrt(tension_rms)
     frac_rms = (tension_rms/tension_mean*100).toFixed(0)
     makeStatBox(@frame_tension_hist[sense_or_field], w-250, 20, "Mean #{tension_mean.toFixed(2)} g")
@@ -965,11 +971,17 @@ $ ->
       # stats
       s3.getJSON_stats (prev_stats) ->
         #console.log("getJSON_prev_stats is called!!!")
-        stats = prev_stats.concat(daily_stat)
-        s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(stats),
-          "#upload-xml",
-          "#upload-json-stats #progress_msg",
-          "#upload-json-stats #progress_bar"
+        # do not add if date is same.
+        #console.log("_.last(prev_stats).date #{_.last(prev_stats).date}")
+        #console.log("daily_stat.date #{daily_stat.date}")
+        if _.last(prev_stats).date isnt daily_stat.date
+          stats = prev_stats.concat(daily_stat) if prev_stats.date isnt daily_stat.date
+          s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(stats),
+            "#upload-xml",
+            "#upload-json-stats #progress_msg",
+            "#upload-json-stats #progress_bar"
+        else
+          console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)")
 
     return
 
@@ -999,6 +1011,8 @@ $ ->
 
       s3.getObject "daily/current/data.json", (url) ->
         d3.json url, (error, data) ->
+          console.log("daily/current/data.json")
+          console.log(data)
           Progress.plotLayerDays(data)
           Endplate.plot(data, dailies[dailies.length-1])
           Tension.plot(data)

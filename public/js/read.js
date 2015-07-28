@@ -110,7 +110,7 @@
       for (i = n = 0, len1 = layer.length; n < len1; i = ++n) {
         wire = layer[i];
         dataID = wire.getElementsByTagName("DataID")[0].childNodes[0].nodeValue;
-        wireID = wire.getElementsByTagName("WireID")[0].childNodes[0].nodeValue;
+        wireID = parseInt(wire.getElementsByTagName("WireID")[0].childNodes[0].nodeValue);
         if (!wire.getElementsByTagName("Density1")[0]) {
           continue;
         }
@@ -156,7 +156,7 @@
     wire_tension_kg = _.reduce(daily_data, (function(memo, d) {
       return memo + d.tens * 0.001;
     }), 0);
-    num_ave = daily_data.length / days;
+    num_ave = parseInt(daily_data.length / days);
     num_bad = 0;
     for (m = 0, len1 = daily_data.length; m < len1; m++) {
       d = daily_data[m];
@@ -774,7 +774,7 @@
     function Progress() {}
 
     Progress.plot = function(dailies) {
-      var d, day_space, frame_progress_ave, frame_progress_bad, frame_progress_day, frame_progress_sum, num_bins, svg_progress_ave, svg_progress_bad, svg_progress_day, svg_progress_sum, xaxis_tickValues, xdomain, ydomain_ave, ydomain_bad, ydomain_day, ydomain_sum;
+      var d, day_space, frame_progress_ave, frame_progress_bad, frame_progress_day, frame_progress_sum, num_bins, svg_progress_ave, svg_progress_bad, svg_progress_day, svg_progress_sum, xaxis_tickValues, xaxis_tickValues2, xdomain, ydomain_ave, ydomain_bad, ydomain_day, ydomain_sum;
       xdomain = (function() {
         var len1, m, results;
         results = [];
@@ -820,7 +820,17 @@
         }
         return results;
       })();
+      xaxis_tickValues2 = (function() {
+        var len1, m, results;
+        results = [];
+        for (m = 0, len1 = dailies.length; m < len1; m++) {
+          d = dailies[m];
+          results.push(d.days);
+        }
+        return results;
+      })();
       console.log("xaxis_tickValues " + xaxis_tickValues);
+      console.log("xaxis_tickValues2 " + xaxis_tickValues2);
       svg_progress_sum = append_svg("#menu_progress #progress_sum");
       svg_progress_day = append_svg("#menu_progress #progress_day");
       svg_progress_ave = append_svg("#menu_progress #progress_ave");
@@ -1100,12 +1110,12 @@
       if (this.first_call) {
         xdomain_tension = [
           0, d3.max(data, function(d) {
-            return d.wireID;
+            return parseInt(d.wireID);
           })
         ];
         ydomain_tension = [
           0, d3.max(data, function(d) {
-            return d.tens;
+            return parseFloat(d.tens);
           })
         ];
         svg_tension = append_svg("#menu_tension");
@@ -1116,10 +1126,10 @@
         this.first_call = false;
       }
       xmin = d3.min(data, function(d) {
-        return d.wireID;
+        return parseInt(d.wireID);
       });
       xmax = d3.max(data, function(d) {
-        return d.wireID;
+        return parseFloat(d.wireID);
       });
       makeLine(this.frame_tension, "tension_limit_sense", [
         {
@@ -1310,10 +1320,10 @@
         ]
       });
       tension_mean = _.reduce(data_select, (function(memo, d) {
-        return memo + d.tens;
+        return memo + parseFloat(d.tens);
       }), 0) / data_select.length;
       tension_rms = _.reduce(data_select, (function(memo, d) {
-        return memo + Math.pow(d.tens - tension_mean, 2);
+        return memo + Math.pow(parseFloat(d.tens) - tension_mean, 2);
       }), 0) / data_select.length;
       tension_rms = Math.sqrt(tension_rms);
       frac_rms = (tension_rms / tension_mean * 100).toFixed(0);
@@ -1367,8 +1377,14 @@
         s3.putObjectWithProgress(current_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-current-stat #progress_msg", "#upload-json-current-stat #progress_bar");
         return s3.getJSON_stats(function(prev_stats) {
           var stats;
-          stats = prev_stats.concat(daily_stat);
-          return s3.putObjectWithProgress(stats_dir + "/stats.json", JSON.stringify(stats), "#upload-xml", "#upload-json-stats #progress_msg", "#upload-json-stats #progress_bar");
+          if (_.last(prev_stats).date !== daily_stat.date) {
+            if (prev_stats.date !== daily_stat.date) {
+              stats = prev_stats.concat(daily_stat);
+            }
+            return s3.putObjectWithProgress(stats_dir + "/stats.json", JSON.stringify(stats), "#upload-xml", "#upload-json-stats #progress_msg", "#upload-json-stats #progress_bar");
+          } else {
+            return console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)");
+          }
         });
       });
     };
@@ -1393,6 +1409,8 @@
         });
         return s3.getObject("daily/current/data.json", function(url) {
           return d3.json(url, function(error, data) {
+            console.log("daily/current/data.json");
+            console.log(data);
             Progress.plotLayerDays(data);
             Endplate.plot(data, dailies[dailies.length - 1]);
             Tension.plot(data);
