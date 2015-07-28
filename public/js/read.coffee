@@ -709,10 +709,8 @@ class Endplate
 g_layerCheckList = []
 class LayerSelection
   @plot: (data) ->
-    g_layerCheckList = (true for i in [0..39])
-    #@layerCheckList = _.map(_.range(39), (i) -> true)
-    
-    layer_selection = ({layerid: i} for i in [0..39])
+    g_layerCheckList = (true for i in [0..38])
+    layer_selection = ({layerid: i} for i in [1..39])
     
     #console.log("layer_selection");
     #console.log(layer_selection);

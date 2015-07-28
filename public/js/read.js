@@ -1016,7 +1016,7 @@
       g_layerCheckList = (function() {
         var m, results;
         results = [];
-        for (i = m = 0; m <= 39; i = ++m) {
+        for (i = m = 0; m <= 38; i = ++m) {
           results.push(true);
         }
         return results;
@@ -1024,7 +1024,7 @@
       layer_selection = (function() {
         var m, results;
         results = [];
-        for (i = m = 0; m <= 39; i = ++m) {
+        for (i = m = 1; m <= 39; i = ++m) {
           results.push({
             layerid: i
           });
