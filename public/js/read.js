@@ -1316,7 +1316,7 @@
   })();
 
   $(function() {
-    var onFileLoad, onFileLoadCSV, s3;
+    var onFileLoad, onFileLoadCSV, s3, today_date, today_dir;
     s3 = new S3();
     $("#upload-csv #upload-form-file").change(function() {
       var item, reader;
@@ -1337,8 +1337,10 @@
       reader.onload = onFileLoad;
       reader.readAsText(item);
     });
+    today_date = "2015/07/27";
+    today_dir = "20150727";
     onFileLoad = function(e) {
-      var daily_data, daily_dir, parser, stats_dir, today_date, today_dir, xmlDoc;
+      var daily_data, daily_dir, parser, stats_dir, xmlDoc;
       parser = new DOMParser();
       xmlDoc = parser.parseFromString(e.target.result, "text/xml");
       today_date = "2015/07/27";

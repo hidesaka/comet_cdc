@@ -907,6 +907,9 @@ $ ->
     reader.readAsText(item)
     return
 
+  today_date = "2015/07/27" # for debug
+  today_dir  = "20150727" # for debug
+
   onFileLoad = (e) -> 
     parser = new DOMParser()
     xmlDoc = parser.parseFromString(e.target.result, "text/xml")
