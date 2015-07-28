@@ -36,8 +36,10 @@ for num,i in numWires
 #############
 # Functions #
 #############
-get_today_name = ->
-  today = new Date;
+get_today_name = (xmlDoc) ->
+  console.log xmlDoc
+  return
+  #today = new Date;
   year = today.getFullYear()
   month = today.getMonth()+1
   date = today.getDate()
@@ -81,6 +83,9 @@ get_last_date = (now_utime_sec, num_wires, num_ave) ->
 
 
 make_daily_data = (xml) ->
+  today_date=""
+  today_dir=""
+  latest_date=0
   datum=[]
   for layerid in [1..39]
     layerID = layerid
@@ -95,8 +100,15 @@ make_daily_data = (xml) ->
       freq = wire.getElementsByTagName("Frq1")[0].childNodes[0].nodeValue
       tens = wire.getElementsByTagName("Ten1")[0].childNodes[0].nodeValue
       data = {dataID: dataID, layerID: layerID, wireID: wireID, tBase: tBase, density: density, date: date, freq: freq, tens: tens}
+
       datum.push(data)
-  datum
+      date_as_int = parseInt(date.replace(/\//g, ''))
+      if date_as_int > latest_date
+        latest_date = date_as_int
+        today_date = date
+        today_dir = date_as_int
+  
+  [today_date, today_dir, datum]
 
 make_stat = (today_date, prev_stat, daily_data) ->
    days = if not prev_stat? then 1 else prev_stat.days + 1
@@ -907,6 +919,7 @@ $ ->
     reader.readAsText(item)
     return
 
+  # Date will be determined after reading XML file
   today_date = "2015/07/27" # for debug
   today_dir  = "20150727" # for debug
 
@@ -915,19 +928,14 @@ $ ->
     xmlDoc = parser.parseFromString(e.target.result, "text/xml")
     #console.log xmlDoc
 
-    #[today_date, today_dir] = get_today_name()
-    today_date = "2015/07/27" # debug
-    today_dir  = "20150727" # debug
+    # daily_data
+    [today_date, today_dir, daily_data] = make_daily_data(xmlDoc)
     console.log("TODAY: #{today_date} #{today_dir}")
 
-    #daily_dir = "test"
-    #stats_dir = "test"
     daily_dir = "daily/#{today_dir}"
     current_dir = "daily/current" # copy of daily_dir
     stats_dir = "stats"
 
-    # daily_data
-    daily_data = make_daily_data(xmlDoc)
     #console.log("uploading data.json")
     s3.putObjectWithProgress "#{daily_dir}/data.json", JSON.stringify(daily_data),
       "#upload-xml",

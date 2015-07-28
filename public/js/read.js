@@ -47,9 +47,10 @@
     }
   }
 
-  get_today_name = function() {
-    var date, date2, dirname, format_date, month, month2, today, year;
-    today = new Date;
+  get_today_name = function(xmlDoc) {
+    var date, date2, dirname, format_date, month, month2, year;
+    console.log(xmlDoc);
+    return;
     year = today.getFullYear();
     month = today.getMonth() + 1;
     date = today.getDate();
@@ -98,7 +99,10 @@
   };
 
   make_daily_data = function(xml) {
-    var data, dataID, date, datum, density, freq, layer, layerID, layerid, len1, m, n, tBase, tens, wire, wireID;
+    var data, dataID, date, date_as_int, datum, density, freq, latest_date, layer, layerID, layerid, len1, m, n, tBase, tens, today_date, today_dir, wire, wireID;
+    today_date = "";
+    today_dir = "";
+    latest_date = 0;
     datum = [];
     for (layerid = m = 1; m <= 39; layerid = ++m) {
       layerID = layerid;
@@ -126,9 +130,15 @@
           tens: tens
         };
         datum.push(data);
+        date_as_int = parseInt(date.replace(/\//g, ''));
+        if (date_as_int > latest_date) {
+          latest_date = date_as_int;
+          today_date = date;
+          today_dir = date_as_int;
+        }
       }
     }
-    return datum;
+    return [today_date, today_dir, datum];
   };
 
   make_stat = function(today_date, prev_stat, daily_data) {
@@ -1340,16 +1350,14 @@
     today_date = "2015/07/27";
     today_dir = "20150727";
     onFileLoad = function(e) {
-      var current_dir, daily_data, daily_dir, parser, stats_dir, xmlDoc;
+      var current_dir, daily_data, daily_dir, parser, ref1, stats_dir, xmlDoc;
       parser = new DOMParser();
       xmlDoc = parser.parseFromString(e.target.result, "text/xml");
-      today_date = "2015/07/27";
-      today_dir = "20150727";
+      ref1 = make_daily_data(xmlDoc), today_date = ref1[0], today_dir = ref1[1], daily_data = ref1[2];
       console.log("TODAY: " + today_date + " " + today_dir);
       daily_dir = "daily/" + today_dir;
       current_dir = "daily/current";
       stats_dir = "stats";
-      daily_data = make_daily_data(xmlDoc);
       s3.putObjectWithProgress(daily_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-daily-data #progress_msg", "#upload-json-daily-data #progress_bar");
       s3.putObjectWithProgress(current_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-current-data #progress_msg", "#upload-json-current-data #progress_bar");
       s3.getJSON_prev_stat(today_dir, function(prev_stat) {
