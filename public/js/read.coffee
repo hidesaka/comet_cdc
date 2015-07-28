@@ -923,6 +923,7 @@ $ ->
     #daily_dir = "test"
     #stats_dir = "test"
     daily_dir = "daily/#{today_dir}"
+    current_dir = "daily/current" # copy of daily_dir
     stats_dir = "stats"
 
     # daily_data
@@ -933,6 +934,11 @@ $ ->
       "#upload-json-daily-data #progress_msg",
       "#upload-json-daily-data #progress_bar"
 
+    s3.putObjectWithProgress "#{current_dir}/data.json", JSON.stringify(daily_data),
+      "#upload-xml",
+      "#upload-json-current-data #progress_msg",
+      "#upload-json-current-data #progress_bar"
+
     # daily_stat
     s3.getJSON_prev_stat today_dir, (prev_stat) ->
       #console.log("getJSON_prev_stat is called!!!")
@@ -942,6 +948,11 @@ $ ->
         "#upload-xml",
         "#upload-json-daily-stat #progress_msg",
         "#upload-json-daily-stat #progress_bar"
+
+      s3.putObjectWithProgress "#{current_dir}/stat.json", JSON.stringify(daily_stat),
+        "#upload-xml",
+        "#upload-json-current-stat #progress_msg",
+        "#upload-json-current-stat #progress_bar"
 
       # stats
       s3.getJSON_stats (prev_stats) ->

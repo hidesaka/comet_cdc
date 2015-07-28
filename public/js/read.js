@@ -1340,20 +1340,23 @@
     today_date = "2015/07/27";
     today_dir = "20150727";
     onFileLoad = function(e) {
-      var daily_data, daily_dir, parser, stats_dir, xmlDoc;
+      var current_dir, daily_data, daily_dir, parser, stats_dir, xmlDoc;
       parser = new DOMParser();
       xmlDoc = parser.parseFromString(e.target.result, "text/xml");
       today_date = "2015/07/27";
       today_dir = "20150727";
       console.log("TODAY: " + today_date + " " + today_dir);
       daily_dir = "daily/" + today_dir;
+      current_dir = "daily/current";
       stats_dir = "stats";
       daily_data = make_daily_data(xmlDoc);
       s3.putObjectWithProgress(daily_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-daily-data #progress_msg", "#upload-json-daily-data #progress_bar");
+      s3.putObjectWithProgress(current_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-current-data #progress_msg", "#upload-json-current-data #progress_bar");
       s3.getJSON_prev_stat(today_dir, function(prev_stat) {
         var daily_stat;
         daily_stat = make_stat(today_date, prev_stat, daily_data);
         s3.putObjectWithProgress(daily_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-daily-stat #progress_msg", "#upload-json-daily-stat #progress_bar");
+        s3.putObjectWithProgress(current_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-current-stat #progress_msg", "#upload-json-current-stat #progress_bar");
         return s3.getJSON_stats(function(prev_stats) {
           var stats;
           stats = prev_stats.concat(daily_stat);
