@@ -191,7 +191,7 @@
       tick_label_dx = 0;
       tick_label_dy = 10;
       tick_label_rotate = "0";
-      xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(10, "%");
+      xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(10);
       if (options.xaxis_type === "time") {
         xAxis.ticks(5).tickFormat(d3.time.format('%b %d'));
         tick_label_rotate = "-65";
