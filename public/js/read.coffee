@@ -159,7 +159,7 @@ make_frame = (svg, xtitle, ytitle, xdomain, ydomain, options) ->
     tick_label_dx = 0
     tick_label_dy = 10
     tick_label_rotate = "0"
-    xAxis = d3.svg.axis().scale(xScale).orient("bottom")
+    xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(10, "%")
 
     if options.xaxis_tickValues?
       #console.log(options.xaxis_tickValues);
