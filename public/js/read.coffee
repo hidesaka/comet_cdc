@@ -159,11 +159,11 @@ make_frame = (svg, xtitle, ytitle, xdomain, ydomain, options) ->
     tick_label_dx = 0
     tick_label_dy = 10
     tick_label_rotate = "0"
-    xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(10)
+    xAxis = d3.svg.axis().scale(xScale).orient("bottom")
 
-    #if options.xaxis_tickValues?
-    #  #console.log(options.xaxis_tickValues);
-    #  xAxis.tickValues(options.xaxis_tickValues)
+    if options.xaxis_tickValues?
+      #console.log(options.xaxis_tickValues);
+      xAxis.tickValues(options.xaxis_tickValues)
 
     if options.xaxis_type=="time"
       xAxis.ticks(5).tickFormat(d3.time.format('%b %d'))
@@ -575,7 +575,7 @@ class Progress
     ydomain_ave = [0, d3.max(dailies, (d) -> d.num_ave)]
     ydomain_bad = [0, d3.max(dailies, (d) -> d.num_bad)]
 
-    num_bins = 20
+    num_bins = 15
     day_space = xdomain.length / num_bins
     day_space = parseInt(day_space)
     console.log("num_bins #{num_bins}")
