@@ -276,7 +276,7 @@ makeScatterPlot = (frame, data, xdata, ydata, options, legend_entry, tooltip) ->
        .append("circle")
        .attr("cx", (d,i)-> frame.xScale(d[xdata]))
        .attr("cy", (d,i)-> frame.yScale(d[ydata]))
-       .attr("r",  3)
+       .attr("r",  options.r)
        .attr("fill", options.fill)
        .attr("stroke",options.stroke)
        .attr("stroke-width", options.stroke_width)
@@ -461,6 +461,7 @@ class DialGauge
     fill_gauge   = {at10deg:"#f8d7d7", at90deg:"#bdd0f4", at180deg:"#9acd32", at270deg:"#ffead6" }
     makeScatterPlot frame_gauge, gauge_data, "utime", "disp_um",
                          { 
+                           r: 3
                            fill: (d) -> fill_gauge[d.location]
                            stroke: (d) -> stroke_gauge[d.location]
                            stroke_width: "1px"
@@ -538,8 +539,8 @@ class Loading
     #/console.log(ydomain_wire)
     svg_wire = append_svg("#menu_load_wire")
     frame_wire = make_frame(svg_wire, "date", "loading of wires (kg)", xdomain, ydomain_wire, {xaxis_type: "time"})
-    makeScatterPlot(frame_wire, dailies, "utime", "wire_tension_kg", { stroke: "#ff1493", fill: "#ff69b4", stroke_width: "1px", line_stroke: "#ff1493" },[],
-              { label: [ { data: [ labelA, (d) -> "#{d.wire_tension_kg.toFixed(1) kg}" ], separator:' '} ]})
+    makeScatterPlot(frame_wire, dailies, "utime", "wire_tension_kg", { r: 3, stroke: "#ff1493", fill: "#ff69b4", stroke_width: "1px", line_stroke: "#ff1493" },[],
+              { label: [ { data: [ labelA, ((d) -> "#{d.wire_tension_kg.toFixed(1)} kg")], separator:' '} ]})
 
 
     # TensionBar + Wire
@@ -547,7 +548,7 @@ class Loading
     svg_all = append_svg("#menu_load_all")
     frame_all = make_frame(svg_all, "date", "total loading (kg)", xdomain, ydomain_all, {xaxis_type: "time"})
     makeScatterPlot(frame_all, dailies, "utime", "all_tension_kg", 
-                                        {fill: "#9966ff", stroke: "#6633cc", stroke_width: "1px", line_stroke: "#6633cc" }, [],
+                                        { r: 3, fill: "#9966ff", stroke: "#6633cc", stroke_width: "1px", line_stroke: "#6633cc" }, [],
                                         { label: [ { data: [ labelA, ((d) -> "#{d.all_tension_kg.toFixed(1)} kg")], separator:' '} ]})
      
     # TensionBar
@@ -556,7 +557,7 @@ class Loading
     #console.log("ydomain_bar " + ydomain_bar);
     svg_bar = append_svg("#menu_load_bar")
     frame_bar = make_frame(svg_bar, "date", "loading of tension bars (kg)", xdomain, ydomain_bar, {xaxis_type: "time"})
-    makeScatterPlot(frame_bar, dailies, "utime", "bar_tension_kg", { fill: "#0081B8", stroke: "blue", stroke_width: "1px", line_stroke: "blue"}, [],
+    makeScatterPlot(frame_bar, dailies, "utime", "bar_tension_kg", { r: 3, fill: "#0081B8", stroke: "blue", stroke_width: "1px", line_stroke: "blue"}, [],
                                          { label: [ { data: [ labelA, ((d) -> "#{d.bar_tension_kg.toFixed(1)} kg")], separator:' '} ]})
 
 
@@ -798,6 +799,7 @@ class Tension
     #console.log(data_select);
     makeScatterPlot @frame_tension, data_select, "wireID", "tens", 
                 {
+                  r: 3
                   stroke: ((d) -> if (d.tBase=="80") then "#3874e3" else "#ed5454"),
                   fill:   ((d) -> if (d.tBase=="80") then "#bdd0f4" else "#f8d7d7"),
                   stroke_width: (d) -> if (d.tens<d.tBase*0.9 || d.tens>d.tBase*1.1) then "1px" else "0px"
@@ -893,10 +895,51 @@ class TensionHistogram
     makeStatBox(@frame_tension_hist[sense_or_field], w-250, 40, "Rms #{tension_rms.toFixed(2)} g (#{frac_rms} %)")
 
 
+class TempHumid
+  @plot : (inside, outside) ->
+    data = inside.concat(outside)
+    svg_temp = append_svg("#menu_temp")
+    svg_humid = append_svg("#menu_temp")
+    xdomain = d3.extent(data,  (d) -> d.utime)
+    ydomain_temp = d3.extent(data, (d) -> d.temp)
+    ydomain_humid = d3.extent(data, (d) -> d.humid)
+    frame_temp  = make_frame(svg_temp, "date", "temperature (C)", xdomain, ydomain_temp, {xaxis_type: "time"})
+    frame_humid = make_frame(svg_humid, "date", "humidity (%)", xdomain, ydomain_humid, {xaxis_type: "time"})
+    stroke = {in:"#ed5454", out:"#3874e3"}
+    makeScatterPlot frame_temp, data, "utime", "temp",
+                         { 
+                           r: 1
+                           fill: (d) -> "none"
+                           stroke: (d) -> stroke[d.location]
+                           stroke_width: "1px"
+                         }
+                         [
+                           {label:"inside",  stroke:'#ed5454', fill: "none", ypos:"66"},
+                           {label:"outside", stroke:'#3874e3', fill: "none", ypos:"83"},
+                         ]
+                         {
+                           label: [ {data: [ "date", (d) -> d.temp], separator:' ', postfix:' C'}]
+                         }
+
+    makeScatterPlot frame_humid, data, "utime", "humid",
+                         { 
+                           r: 1
+                           fill: (d) -> "none"
+                           stroke: (d) -> stroke[d.location]
+                           stroke_width: "1px"
+                         }
+                         [
+                           {label:"inside",  stroke:'#ed5454', fill: "none", ypos:"66"},
+                           {label:"outside", stroke:'#3874e3', fill: "none", ypos:"83"},
+                         ]
+                         {
+                           label: [ {data: [ "date", (d) -> d.humid], separator:' ', postfix:' %'}]
+                         }
+
+
 $ ->
 
   s3 = new S3()
-
 
   #$("#upload-csv #upload-form-file").change ->
   #  #console.log "called onFileInput"
@@ -1012,3 +1055,10 @@ $ ->
           Tension.plot(data)
           TensionHistogram.plot(data,"sense")
           TensionHistogram.plot(data,"field")
+
+  s3.getObject "csv/inside.json", (url) ->
+    d3.json url, (error, inside) ->
+      s3.getObject "csv/outside.json", (url) ->
+        d3.json url, (error, outside) ->
+          TempHumid.plot(inside, outside)
+
