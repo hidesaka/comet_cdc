@@ -14,8 +14,10 @@ function upload(name, url) {
          data: fd,
          dateType: 'json',
          success: function(data) { 
-            $(name + " #progress_bar").hide();
-            console.log(data); 
+            console.log("succeeded to upload csv"); 
+            $(name + " #upload-form-file").val("").removeAttr("disabled")
+            $(name + " #progress_msg").html("done!").fadeOut(3000)
+            $(name + " #progress_bar").fadeOut(3000)
          },
          xhr : function(){
             XHR = $.ajaxSettings.xhr();
@@ -23,6 +25,7 @@ function upload(name, url) {
                XHR.upload.addEventListener('progress',function(e) {
                      progre = parseInt(e.loaded/e.total*10000)/100 ;
                         //console.log(progre+"%") ;
+                        $(name + " #progress_msg").show();
                         $(name + " #progress_msg").height("30px");
                         $(name + " #progress_msg").html(progre+"%");
                         $(name + " #progress_bar").attr("value", progre);

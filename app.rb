@@ -154,7 +154,7 @@ end
 
 post '/csv_upload' do 
    if params[:file]
-      fork do
+      pid = fork do
          path = params[:file][:filename]
 
          basename = File.basename(path)
@@ -165,8 +165,11 @@ post '/csv_upload' do
          end
 
          s3_write("csv/#{basename}", body)
-         return "success, file size was #{params[:file][:tempfile].size}"
+         #return "success, file size was #{params[:file][:tempfile].size}"
       end
+      Process.waitpid(pid)
+      return "success, csv file is uploaded"
+
    else
       return "params[:file] is null"
    end
