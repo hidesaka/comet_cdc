@@ -85,40 +85,50 @@
 
          model.setCreationMethod("Blob");
 
-         fileInput.addEventListener('change', function(event) {
-               model.addFiles(fileInput.files, function() {
-                     var name = "#upload-xml";
-                     $(name + " #progress_msg").html("Compressing...");
-                     $(name + " #progress_bar").attr("value", 0);
-                     $(name + " #progress_bar").show();
-                  }, function(file) {
-                     //var li = document.createElement("li");
-                     //zipProgress.value = 0;
-                     //zipProgress.max = 0;
-                     //li.textContent = file.name;
-                     //li.appendChild(zipProgress);
-                  }, function(current, total) {
-                     //zipProgress.value = current;
-                     //zipProgress.max = total;
-                     var progre = parseInt(current/total*10000)/100 ;
-                     var name = "#upload-xml";
-                     $(name + " #progress_msg").height("30px");
-                     $(name + " #progress_msg").html("Compressing.. " + progre+"%");
-                     $(name + " #progress_bar").attr("value", progre);
-                  }, function() {
-                     //if (zipProgress.parentNode)
-                     //   zipProgress.parentNode.removeChild(zipProgress);
+         try {
+            fileInput.addEventListener('change', function(event) {
+                  model.addFiles(fileInput.files, function(filename) {
+                        if (filename!="COMETCDC.xml") {
+                           $(name + " #error").html("Wrong file selected. Choose COMETCDC.xml");
+                           console.log("filename is wrong");
+                           throw "bad_file_name";
+                        }
+                     },function() {
+                        var name = "#upload-xml";
+                        $(name + " #progress_msg").html("Compressing...");
+                        $(name + " #progress_bar").attr("value", 0);
+                        $(name + " #progress_bar").show();
+                     }, function(file) {
+                        //var li = document.createElement("li");
+                        //zipProgress.value = 0;
+                        //zipProgress.max = 0;
+                        //li.textContent = file.name;
+                        //li.appendChild(zipProgress);
+                     }, function(current, total) {
+                        //zipProgress.value = current;
+                        //zipProgress.max = total;
+                        var progre = parseInt(current/total*10000)/100 ;
+                           var name = "#upload-xml";
+                           $(name + " #progress_msg").height("30px");
+                           $(name + " #progress_msg").html("Compressing.. " + progre+"%");
+                           $(name + " #progress_bar").attr("value", progre);
+                        }, function() {
+                           //if (zipProgress.parentNode)
+                           //   zipProgress.parentNode.removeChild(zipProgress);
 
-                     console.log("finish to make zipFile");
+                           console.log("finish to make zipFile");
 
-                     model.getBlob(function(blob) {
-                           callback(blob);
+                           model.getBlob(function(blob) {
+                                 callback(blob);
+                           });
+
+                           //fileInput.value = "";
+                           //fileInput.disabled = false;
                      });
-
-                     //fileInput.value = "";
-                     //fileInput.disabled = false;
                });
-         });
+            } catch (err) {
+               console.log("error is thrown.");
+            }
       }
 
 })(this);
