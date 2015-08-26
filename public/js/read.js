@@ -1421,11 +1421,18 @@
     var onFileLoad, s3, today_date, today_dir;
     s3 = new S3();
     $("#upload-xml #upload-form-file").change(function() {
-      var item, reader;
-      item = this.files[0];
+      var file, reader;
+      file = this.files[0];
+      $(name + " #error").html("");
+      $(name + " #error").hide();
+      console.log("file.name -> ", file.name);
+      if (file.name !== "COMETCDC.xml") {
+        console.log("filename is incorrect");
+        return;
+      }
       reader = new FileReader();
       reader.onload = onFileLoad;
-      reader.readAsText(item);
+      reader.readAsText(file);
     });
     today_date = "2015/07/27";
     today_dir = "20150727";

@@ -956,10 +956,17 @@ $ ->
 
   $("#upload-xml #upload-form-file").change ->
     #console.log "called onFileInput"
-    item = @files[0]
+    file = @files[0]
+    $(name + " #error").html("")
+    $(name + " #error").hide()
+    console.log("file.name -> ", file.name)
+    if (file.name!="COMETCDC.xml")
+      console.log("filename is incorrect")
+      return
+    
     reader = new FileReader()
     reader.onload = onFileLoad
-    reader.readAsText(item)
+    reader.readAsText(file)
     return
 
   # Date will be determined after reading XML file

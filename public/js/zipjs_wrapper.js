@@ -30,7 +30,7 @@
                setCreationMethod : function(method) {
                   creationMethod = method;
                },
-               addFiles : function addFiles(files, oninit, onadd, onprogress, onend) {
+               addFiles : function addFiles(files, check_file_name, oninit, onadd, onprogress, onend) {
                   var addIndex = 0;
 
                   function nextFile() {
@@ -52,6 +52,9 @@
                            nextFile();
                      }, onerror);
                   }
+
+                  if (!check_file_name(files[addIndex].name))
+                     return
 
                   if (zipWriter)
                      nextFile();
@@ -85,98 +88,98 @@
 
          model.setCreationMethod("Blob");
 
-         try {
-            fileInput.addEventListener('change', function(event) {
-                  model.addFiles(fileInput.files, function(filename) {
-                        if (filename!="COMETCDC.xml") {
-                           $(name + " #error").html("Wrong file selected. Choose COMETCDC.xml");
-                           console.log("filename is wrong");
-                           throw "bad_file_name";
-                        }
-                     },function() {
+         fileInput.addEventListener('change', function(event) {
+               model.addFiles(fileInput.files, function(filename) {
+                     if (filename != "COMETCDC.xml") {
                         var name = "#upload-xml";
-                        $(name + " #progress_msg").html("Compressing...");
-                        $(name + " #progress_bar").attr("value", 0);
-                        $(name + " #progress_bar").show();
-                     }, function(file) {
-                        //var li = document.createElement("li");
-                        //zipProgress.value = 0;
-                        //zipProgress.max = 0;
-                        //li.textContent = file.name;
-                        //li.appendChild(zipProgress);
-                     }, function(current, total) {
-                        //zipProgress.value = current;
-                        //zipProgress.max = total;
-                        var progre = parseInt(current/total*10000)/100 ;
-                           var name = "#upload-xml";
-                           $(name + " #progress_msg").height("30px");
-                           $(name + " #progress_msg").html("Compressing.. " + progre+"%");
-                           $(name + " #progress_bar").attr("value", progre);
-                        }, function() {
-                           //if (zipProgress.parentNode)
-                           //   zipProgress.parentNode.removeChild(zipProgress);
+                        $(name + " #error").show()
+                        $(name + " #error").html("Wrong file... Select XML file, COMETCDC.xml");
+                        $(name + " #error").css('color','#ff0000');
+                        $(name + " #error").css('font-weight','Bold');
+                        return false;
+                     }
+                     return true;
+                  },function() {
+                     var name = "#upload-xml";
+                     $(name + " #progress_msg").html("Compressing...");
+                     $(name + " #progress_bar").attr("value", 0);
+                     $(name + " #progress_bar").show();
+                  }, function(file) {
+                     //var li = document.createElement("li");
+                     //zipProgress.value = 0;
+                     //zipProgress.max = 0;
+                     //li.textContent = file.name;
+                     //li.appendChild(zipProgress);
+                  }, function(current, total) {
+                     //zipProgress.value = current;
+                     //zipProgress.max = total;
+                     var progre = parseInt(current/total*10000)/100 ;
+                        var name = "#upload-xml";
+                        $(name + " #progress_msg").height("30px");
+                        $(name + " #progress_msg").html("Compressing.. " + progre+"%");
+                        $(name + " #progress_bar").attr("value", progre);
+                     }, function() {
+                        //if (zipProgress.parentNode)
+                        //   zipProgress.parentNode.removeChild(zipProgress);
 
-                           console.log("finish to make zipFile");
+                        console.log("finish to make zipFile");
 
-                           model.getBlob(function(blob) {
-                                 callback(blob);
-                           });
+                        model.getBlob(function(blob) {
+                              callback(blob);
+                        });
 
-                           //fileInput.value = "";
-                           //fileInput.disabled = false;
-                     });
-               });
-            } catch (err) {
-               console.log("error is thrown.");
-            }
-      }
+                        //fileInput.value = "";
+                        //fileInput.disabled = false;
+                  });
+            });
+         }
 
-})(this);
+   })(this);
 
-$(function() {
-      /*
-      zipWrapper("#upload-xml #upload-form-file", function(blob) {
-            var name = "#upload-xml";
-            var url = "/zip_upload";
-            $(name + " #progress_msg").show();
-            $(name + " #progress_bar").attr("value", 0);
-            $(name + " #progress_bar").show();
-            $(name + " #upload-form-file").attr("disabled","disabled");
-            console.log("starting ajax...");
-            console.log("blog: " + blob)
-            var fd = new FormData();
-            fd.append("zip", blob);
-            $.ajax({
-                  url: url,
-                  type: 'post',
-                  processData: false,
-                  contentType: false,
-                  data: fd,
-                  timeout: 30000,
-                  error: function (xhr, textStatus, errorThrown) {
-                     console.log("there is error at ajax...");
-                     console.log(xhr.responseText);
-                  },
-                  success: function(data) { 
-                     $(name + " #upload-form-file").val("").removeAttr("disabled");
-                     $(name + " #progress_msg").html("done!").fadeOut(3000);
-                     $(name + " #progress_bar").fadeOut(3000);
-                     console.log(data); 
-                  },
-                  xhr : function() {
-                     XHR = $.ajaxSettings.xhr();
-                     if (XHR.upload){
-                        XHR.upload.addEventListener('progress',function(e) {
-                              progre = parseInt(e.loaded/e.total*10000)/100 ;
-                                 //console.log(progre+"%") ;
-                                 $(name + " #progress_msg").height("30px");
-                                 $(name + " #progress_msg").html("Uploading.. " + progre+"%");
-                                 $(name + " #progress_bar").attr("value", progre);
-                           }, false); 
-                        }
-                        return XHR;
-                     },
-               });
-         });
-         */
-   });
+   $(function() {
+         /*
+          zipWrapper("#upload-xml #upload-form-file", function(blob) {
+                var name = "#upload-xml";
+                var url = "/zip_upload";
+                $(name + " #progress_msg").show();
+                $(name + " #progress_bar").attr("value", 0);
+                $(name + " #progress_bar").show();
+                $(name + " #upload-form-file").attr("disabled","disabled");
+                console.log("starting ajax...");
+                console.log("blog: " + blob)
+                var fd = new FormData();
+                fd.append("zip", blob);
+                $.ajax({
+                      url: url,
+                      type: 'post',
+                      processData: false,
+                      contentType: false,
+                      data: fd,
+                      timeout: 30000,
+                      error: function (xhr, textStatus, errorThrown) {
+                         console.log("there is error at ajax...");
+                         console.log(xhr.responseText);
+                      },
+                      success: function(data) { 
+                         $(name + " #upload-form-file").val("").removeAttr("disabled");
+                         $(name + " #progress_msg").html("done!").fadeOut(3000);
+                         $(name + " #progress_bar").fadeOut(3000);
+                         console.log(data); 
+                      },
+                      xhr : function() {
+                         XHR = $.ajaxSettings.xhr();
+                         if (XHR.upload){
+                            XHR.upload.addEventListener('progress',function(e) {
+                                  progre = parseInt(e.loaded/e.total*10000)/100 ;
+                                     //console.log(progre+"%") ;
+                                     $(name + " #progress_msg").height("30px");
+                                     $(name + " #progress_msg").html("Uploading.. " + progre+"%");
+                                     $(name + " #progress_bar").attr("value", progre);
+                               }, false); 
+                            }
+                            return XHR;
+                         },
+                   });
+             });
+             */
+      });
