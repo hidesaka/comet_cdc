@@ -1,5 +1,7 @@
 ## COMET-CDC Wire Stringing Status by D3.js
 
+https://comet-cdc.herokuapp.com
+
 # 概要
 「ワイヤー張り」の進行状況を確認するためのアプリケーション。ワイヤー張りは、1日約140本のペースで進み、合計19,548本で終了する。トップページには、以下７つのタブがある。
 
