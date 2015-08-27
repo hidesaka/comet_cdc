@@ -1,6 +1,0 @@
-Wiring started on May 26th, but found error at tension measurements
-on May 26th, so all wires stringed on 26th were re-measured on 27th.
-COMETCDC.xml in top dir records lastest result of the mesuremnets,
-so no entries on May 26th.
-To consistent with top COMETCDC.xml, xml of May 26th is not used.
-Or, read COMETCDC.xml at each days... => reading several xml fiels may slow...
