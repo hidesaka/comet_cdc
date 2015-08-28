@@ -1,6 +1,6 @@
 function upload(name, file, url) {
-   $form = $(name);
-   fd = new FormData($form);
+   fd = new FormData($(name).get()[0]);
+   console.log("fd -> ", fd);
    var file_name = $(file).prop('files')[0].name;
    console.log("csv file name -> ", file_name);
    var accept_files = /tension_bar\.csv|dial_gauge\.csv|outside_\d{8}\.csv|inside_\d{8}\.csv/;
@@ -33,6 +33,7 @@ function upload(name, file, url) {
             $(name + " #upload-form-file").val("").removeAttr("disabled")
             $(name + " #progress_msg").html("done!").fadeOut(3000)
             $(name + " #progress_bar").fadeOut(3000)
+            $(file).val("").removeAttr("disabled")
          },
          xhr : function(){
             XHR = $.ajaxSettings.xhr();
