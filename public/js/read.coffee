@@ -1,6 +1,30 @@
 ###############
 # Global vars #
 ###############
+spin_opts = {
+  lines: 13 # The number of lines to draw
+  length: 28 # The length of each line
+  width: 14 # The line thickness
+  radius: 42 # The radius of the inner circle
+  scale: 1 # Scales overall size of the spinner
+  corners: 1 # Corner roundness (0..1)
+  color: '#000' # #rgb or #rrggbb or array of colors
+  opacity: 0.25 # Opacity of the lines
+  rotate: 0 # The rotation offset
+  direction: 1 # 1: clockwise, -1: counterclockwise
+  speed: 1 # Rounds per second
+  trail: 60 # Afterglow percentage
+  fps: 20 # Frames per second when using setTimeout() as a fallback for CSS
+  zIndex: 2e9 # The z-index (defaults to 2000000000)
+  className: 'spinner' # The CSS class to assign to the spinner
+  top: '60%' # Top position relative to parent
+  left: '40%' # Left position relative to parent
+  shadow: false # Whether to render a shadow
+  hwaccel: false # Whether to use hardware acceleration
+  position: 'absolute' # Element positioning
+}
+
+#
 diam = 180
 w = 650
 h = 650
@@ -10,7 +34,7 @@ width = w - margin.left - margin.right
 height = 300 - margin.top - margin.bottom
 
 numWires = [ 
-   396, 396, 396, 408, 408, 420, 420,
+  396, 396, 396, 408, 408, 420, 420,
    432, 432, 444, 444, 456, 456, 468, 
    468, 480, 480, 492, 492, 504, 504, 
    516, 516, 528, 528, 540, 540, 552, 
@@ -21,12 +45,12 @@ numWires = [
 numTotalWires = _.reduce(numWires, (memo, num) -> memo+num)
 
 get_xypos = (layerid, wireid, num_wires) ->
-   r = 50+(layerid-1)
-   deg = (wireid-1)/num_wires*360
-   rad = deg/180.0*Math.PI
-   x = r*Math.cos(rad)
-   y = r*Math.sin(rad)
-   {x: x, y: y}
+  r = 50+(layerid-1)
+  deg = (wireid-1)/num_wires*360
+  rad = deg/180.0*Math.PI
+  x = r*Math.cos(rad)
+  y = r*Math.sin(rad)
+  {x: x, y: y}
 
 holes = []
 for num,i in numWires
@@ -51,35 +75,35 @@ for num,i in numWires
 
 
 get_last_date = (now_utime_sec, num_wires, num_ave) ->
-   remaining_wires = numTotalWires - num_wires
-   string_speed = num_ave
-   remaining_work_days = remaining_wires/string_speed
-   #p string_speed
-   #p remaining_work_days
-   num_holidays = 0
-   remaining_days = 1
-   #current = new Date(now_utime_sec*1000)
-   #current_day = Date.new(current.year, current.mon, current.day)
-   #puts "current_day #{current_day}"
+  remaining_wires = numTotalWires - num_wires
+  string_speed = num_ave
+  remaining_work_days = remaining_wires/string_speed
+  #p string_speed
+  #p remaining_work_days
+  num_holidays = 0
+  remaining_days = 1
+  #current = new Date(now_utime_sec*1000)
+  #current_day = Date.new(current.year, current.mon, current.day)
+  #puts "current_day #{current_day}"
+  
+  work_days = 1
+  loop
+    break if work_days >= remaining_work_days
+    #day = current_day + remaining_days
+    day = new Date((now_utime_sec + remaining_days*24*60*60)*1000) # ms
+    #p day
+    if (day.getDay()==0 or day.getDay()==6)          then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==8 and day.getDate()==13) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==8 and day.getDate()==14) then num_holidays+=1; remaining_days+=1; continue;
+    remaining_days+=1
+    work_days+=1
 
-   work_days = 1
-   loop
-      break if work_days >= remaining_work_days
-      #day = current_day + remaining_days
-      day = new Date((now_utime_sec + remaining_days*24*60*60)*1000) # ms
-      #p day
-      if (day.getDay()==0 or day.getDay()==6)          then num_holidays+=1; remaining_days+=1; continue;
-      if ((day.getMonth()+1)==8 and day.getDate()==13) then num_holidays+=1; remaining_days+=1; continue;
-      if ((day.getMonth()+1)==8 and day.getDate()==14) then num_holidays+=1; remaining_days+=1; continue;
-      remaining_days+=1
-      work_days+=1
-   
-   last_utime_ms = (now_utime_sec + remaining_days*24*60*60)*1000
-   last_date = new Date(last_utime_ms)
-   last_day = "#{last_date.getFullYear()}/#{last_date.getMonth()+1}/#{last_date.getDate()}"
-   #console.log("remaining_days #{remaining_days}")
-   #console.log("last_day #{last_day}")
-   [ last_day, last_utime_ms ]
+  last_utime_ms = (now_utime_sec + remaining_days*24*60*60)*1000
+  last_date = new Date(last_utime_ms)
+  last_day = "#{last_date.getFullYear()}/#{last_date.getMonth()+1}/#{last_date.getDate()}"
+  #console.log("remaining_days #{remaining_days}")
+  #console.log("last_day #{last_day}")
+  [ last_day, last_utime_ms ]
 
 
 make_daily_data = (xml) ->
@@ -939,6 +963,8 @@ class TempHumid
 
 $ ->
 
+  spinner = new Spinner(spin_opts).spin($("#status").get(0))
+
   s3 = new S3()
 
   #$("#upload-csv #upload-form-file").change ->
@@ -1058,6 +1084,9 @@ $ ->
           #console.log("daily/current/data.json")
           #console.log(data)
           Progress.plotLayerDays(data)
+
+          spinner.stop()
+
           Endplate.plot(data, dailies[dailies.length-1])
           Tension.plot(data)
           TensionHistogram.plot(data,"sense")
