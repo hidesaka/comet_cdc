@@ -84,7 +84,7 @@
 
       obj.zipWrapper = function(id, callback) {
          var fileInput = $(id)[0];
-         console.log("fileInput " + fileInput);
+         console.log("fileInput ", fileInput);
 
          model.setCreationMethod("Blob");
 

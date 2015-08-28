@@ -1,10 +1,25 @@
-function upload(name, url) {
+function upload(name, file, url) {
+   $form = $(name);
+   fd = new FormData($form);
+   var file_name = $(file).prop('files')[0].name;
+   console.log("csv file name -> ", file_name);
+   var accept_files = /tension_bar\.csv|dial_gauge\.csv|outside_\d{8}\.csv|inside_\d{8}\.csv/;
+   if (!accept_files.exec(file_name)) {
+      $(name + " #error").html("Select csv file")
+      $(name + " #error").css('color','#ff0000');
+      $(name + " #error").css('font-weight','Bold');
+      $(name + " #error").show();
+      console.log("unknown file name -> not uploaded.");
+      return false;
+   } else {
+      console.log("uploading..");
+   }
+   $(name + " #error").html("")
+   $(name + " #error").hide();
    $(name + " #progress_msg").html("");
-
    $(name + " #progress_bar").attr("value", 0);
    $(name + " #progress_bar").show();
-   $form = $(name);
-   fd = new FormData($form[0]);
+
    $.ajax(
       {
          url: url,
