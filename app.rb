@@ -113,3 +113,93 @@ get '/xml_list' do
    end
    msg.join()
 end
+
+get '/data.txt' do
+   file = Tempfile.new("data.txt")
+   data = s3_read_json("daily/current/data.json")
+   data.each do |d|
+      dataID = d[:dataID]
+      layerID =d[:layerID]
+      wireID = d[:wireID]
+      tBase = d[:tBase]
+      density =d[:density]
+      date = d[:date]
+      freq = d[:freq]
+      tens = d[:tens]
+      file.puts "#{date} #{layerID} #{wireID} #{tBase} #{density} #{freq} #{tens}"
+   end
+   file.close
+   send_file(file.path, {filename: "data.txt"})
+   file.unlink
+end
+
+get '/stats.txt' do
+   file = Tempfile.new("stats.txt")
+   stats = s3_read_json("stats/stats.json")
+   stats.each do |d|
+      date = d[:date]
+      days =d[:days]
+      num_sum = d[:num_sum]
+      num_sense =d[:num_sense]
+      num_field = d[:num_field]
+      num_bad = d[:num_bad]
+      wire_tension_kg = d[:wire_tension_kg].to_f
+      str = sprintf "%s %s %s %s %s %s %5.2f\n", date, days, num_sum, num_sense, num_field, num_bad, wire_tension_kg
+      file.puts str
+   end
+   file.close
+   send_file(file.path, {filename: "stats.txt"})
+   file.unlink
+end
+
+def get_temp(in_or_out)
+   file = Tempfile.new("temp_#{in_or_out}.txt")
+   temps = s3_read_json("csv/#{in_or_out}.json")
+   temps.each do |d|
+      date = d[:date]
+      temp =d[:temp]
+      humid = d[:humid]
+      file.puts "#{date} #{temp} #{humid}"
+   end
+   file.close
+   send_file(file.path, {filename: "temp_#{in_or_out}.txt"})
+   file.unlink
+end
+
+get '/temp_inside.txt' do 
+   get_temp("inside")
+end
+
+get '/temp_outside.txt' do 
+   get_temp("outside")
+end
+
+get '/dial_gauge.txt' do 
+   file = Tempfile.new("dial_gauge.txt")
+   body = s3_read_csv('csv/dial_gauge.csv') 
+   msg=[]
+   ary = body.split("\n")
+   item = ary[1].split(",")
+   date = item[0]
+   time = item[1]
+   deg10_1st =  (item[4].to_f + item[5].to_f)*1000
+   deg90_1st =  (item[6].to_f + item[7].to_f)*1000
+   deg180_1st = (item[8].to_f + item[9].to_f)*1000
+   deg270_1st = (item[10].to_f+ item[11].to_f)*1000
+   file.puts "#{date} #{time} 0 0 0 0"
+
+   ary[2..-1].each do |line|
+      item = line.split(",")
+      date = item[0]
+      time = item[1]
+      deg10 =  (item[4].to_f + item[5].to_f)*1000
+      deg90 =  (item[6].to_f + item[7].to_f)*1000
+      deg180 = (item[8].to_f + item[9].to_f)*1000
+      deg270 = (item[10].to_f+ item[11].to_f)*1000
+      str = sprintf "%s %s %5.2f %5.2f %5.2f %5.2f\n", date, time, deg10-deg10_1st, deg90-deg90_1st, deg180-deg180_1st, deg270-deg270_1st
+      file.puts str
+   end
+   file.close
+   send_file(file.path, {filename: "dial_gauge.txt"})
+   file.unlink
+end

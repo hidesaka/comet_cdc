@@ -260,6 +260,19 @@ def s3_read_json(key)
    JSON.parse(body, :symbolize_names => true)
 end
 
+def s3_read_csv(key)
+   s3_setup
+
+   key = key.gsub(/\/+/,'/')
+   puts "s3_read_csv key -> #{key}"
+   begin
+      body = $s3.get_object(bucket: "comet-cdc", key: key).body.read
+   rescue
+      return []
+   end
+   body
+end
+
 def s3_dump_json(key)
    p s3_read_json(key)
 end
