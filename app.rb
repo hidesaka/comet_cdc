@@ -203,3 +203,22 @@ get '/dial_gauge.txt' do
    send_file(file.path, {filename: "dial_gauge.txt"})
    file.unlink
 end
+
+get '/tension_bar.txt' do 
+   file = Tempfile.new("tension_bar.txt")
+   body = s3_read_csv('csv/tension_bar.csv') 
+   body.encode!("utf-8", :invalid=>:replace)
+   body.gsub!("\r","\n")
+   msg=[]
+   ary = body.split("\n")
+   ary[1..-1].each do |d|
+      item = d.split(",")
+      date = item[0]
+      tens = item[1]
+      next if date.nil? or date.empty?
+      file.puts "#{date} #{tens}"
+   end
+   file.close
+   send_file(file.path, {filename: "tension_bar.txt"})
+   file.unlink
+end
