@@ -18,3 +18,10 @@ group :development do
    gem 'foreman'
    gem 'heroku'
 end
+
+group :test do
+   gem 'rspec'
+   gem 'rack-test'
+   gem 'capybara'
+  gem 'selenium-webdriver'
+end
