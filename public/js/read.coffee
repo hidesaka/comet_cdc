@@ -626,7 +626,7 @@ class Progress
     # after 96 days, subtraced by 105
     # This is adhoc so do not forget to delete later
     dailies_subtract = _.map(dailies, (value, index, list) ->
-      value.num_bad = value.num_bad - 105 if index > 96
+      value.num_bad = value.num_bad - 105 if index >= 95
       value
     )
 

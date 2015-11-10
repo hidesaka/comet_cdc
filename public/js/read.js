@@ -881,7 +881,7 @@
         ]
       });
       dailies_subtract = _.map(dailies, function(value, index, list) {
-        if (index > 96) {
+        if (index >= 95) {
           value.num_bad = value.num_bad - 105;
         }
         return value;
