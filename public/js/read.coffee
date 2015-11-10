@@ -609,7 +609,7 @@ class Progress
     ydomain_sum = [0, d3.max(dailies, (d) -> d.num_sum)]
     ydomain_day = [0, d3.max(dailies, (d) -> d.num_day)]
     ydomain_ave = [0, d3.max(dailies, (d) -> d.num_ave)]
-    ydomain_bad = [0, d3.max(dailies_subtracted, (d) -> d.num_bad)]
+    ydomain_bad = [0, d3.max(dailies_subtract, (d) -> d.num_bad)]
 
     num_bins = 15
     day_space = xdomain.length / num_bins

@@ -819,7 +819,7 @@
         })
       ];
       ydomain_bad = [
-        0, d3.max(dailies_subtracted, function(d) {
+        0, d3.max(dailies_subtract, function(d) {
           return d.num_bad;
         })
       ];
