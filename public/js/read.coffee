@@ -623,7 +623,17 @@ class Progress
     makeBarChart(frame_progress_sum, dailies, "days","num_sum", "#D70071", {label: [ {data: ["num_sum"]} ]})
     makeBarChart(frame_progress_ave, dailies, "days","num_ave", "#91D48C", {label: [ {data: [(d)->d.num_ave.toFixed(1)]} ]})
     makeBarChart(frame_progress_day, dailies, "days","num_day", "steelblue", {label: [ {data: ["num_day"]} ]})
-    makeBarChart(frame_progress_bad, dailies, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]})
+    # after 96 days, subtraced by 105
+    # This is adhoc so do not forget to delete later
+    dailies_subtract = _.map(dailies, (value, index, list) ->
+      value.num_bad = value.num_bad - 105 if index > 96
+      value
+    )
+
+    console.log("dalies_subtract")
+    console.log(dailies_subtract)
+
+    makeBarChart(frame_progress_bad, dailies_subtract, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]})
 
   @plotLayerDays = (data) ->
     #console.log(data)
