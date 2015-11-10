@@ -593,12 +593,23 @@ class Loading
 
 class Progress
   @plot: (dailies) ->
+
+    # after 96 days, subtraced by 105
+    # This is adhoc so do not forget to delete later
+    dailies_subtract = _.map(dailies, (value, index, list) ->
+      value.num_bad = value.num_bad - 105 if index >= 95
+      value
+    )
+    #console.log("dalies_subtract")
+    #console.log(dailies_subtract)
+
+
     #xdomain =  _.map(dailies, (d) ->d.days)
     xdomain = (d.days for d in dailies)
     ydomain_sum = [0, d3.max(dailies, (d) -> d.num_sum)]
     ydomain_day = [0, d3.max(dailies, (d) -> d.num_day)]
     ydomain_ave = [0, d3.max(dailies, (d) -> d.num_ave)]
-    ydomain_bad = [0, d3.max(dailies, (d) -> d.num_bad)]
+    ydomain_bad = [0, d3.max(dailies_subtracted, (d) -> d.num_bad)]
 
     num_bins = 15
     day_space = xdomain.length / num_bins
@@ -623,16 +634,6 @@ class Progress
     makeBarChart(frame_progress_sum, dailies, "days","num_sum", "#D70071", {label: [ {data: ["num_sum"]} ]})
     makeBarChart(frame_progress_ave, dailies, "days","num_ave", "#91D48C", {label: [ {data: [(d)->d.num_ave.toFixed(1)]} ]})
     makeBarChart(frame_progress_day, dailies, "days","num_day", "steelblue", {label: [ {data: ["num_day"]} ]})
-    # after 96 days, subtraced by 105
-    # This is adhoc so do not forget to delete later
-    dailies_subtract = _.map(dailies, (value, index, list) ->
-      value.num_bad = value.num_bad - 105 if index >= 95
-      value
-    )
-
-    console.log("dalies_subtract")
-    console.log(dailies_subtract)
-
     makeBarChart(frame_progress_bad, dailies_subtract, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]})
 
   @plotLayerDays = (data) ->

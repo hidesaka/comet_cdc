@@ -788,6 +788,12 @@
 
     Progress.plot = function(dailies) {
       var d, dailies_subtract, day_space, frame_progress_ave, frame_progress_bad, frame_progress_day, frame_progress_sum, num_bins, svg_progress_ave, svg_progress_bad, svg_progress_day, svg_progress_sum, xaxis_tickValues, xdomain, ydomain_ave, ydomain_bad, ydomain_day, ydomain_sum;
+      dailies_subtract = _.map(dailies, function(value, index, list) {
+        if (index >= 95) {
+          value.num_bad = value.num_bad - 105;
+        }
+        return value;
+      });
       xdomain = (function() {
         var len1, m, results;
         results = [];
@@ -813,7 +819,7 @@
         })
       ];
       ydomain_bad = [
-        0, d3.max(dailies, function(d) {
+        0, d3.max(dailies_subtracted, function(d) {
           return d.num_bad;
         })
       ];
@@ -880,14 +886,6 @@
           }
         ]
       });
-      dailies_subtract = _.map(dailies, function(value, index, list) {
-        if (index >= 95) {
-          value.num_bad = value.num_bad - 105;
-        }
-        return value;
-      });
-      console.log("dalies_subtract");
-      console.log(dailies_subtract);
       return makeBarChart(frame_progress_bad, dailies_subtract, "days", "num_bad", "#6521A0", {
         label: [
           {
