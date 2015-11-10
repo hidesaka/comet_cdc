@@ -1054,6 +1054,9 @@
         }
         return results;
       })();
+      g_layerCheckList[10] = false;
+      g_layerCheckList[11] = false;
+      g_layerCheckList[12] = false;
       layer_selection = (function() {
         var m, results;
         results = [];
@@ -1066,7 +1069,13 @@
       })();
       labels = d3.select("#menu_tension").append("div").html("LayerID").attr("id", "layer_selection").selectAll(".test").data(layer_selection).enter().append("label").attr("class", "label_id_layers").text(function(d) {
         return d.layerid;
-      }).insert("input").attr("type", "checkbox").property("checked", true).attr("id", function(d) {
+      }).insert("input").attr("type", "checkbox").property("checked", function(d) {
+        if (d.layerid === 11 || d.layerid === 12 || d.layerid === 13) {
+          return false;
+        } else {
+          return true;
+        }
+      }).attr("id", function(d) {
         return "id_layer_" + d.layerid;
       }).attr("value", function(d) {
         return d.layerid;

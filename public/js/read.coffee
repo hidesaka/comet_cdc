@@ -746,6 +746,9 @@ g_layerCheckList = []
 class LayerSelection
   @plot: (data) ->
     g_layerCheckList = (true for i in [0..38])
+    g_layerCheckList[10] = false
+    g_layerCheckList[11] = false
+    g_layerCheckList[12] = false
     layer_selection = ({layerid: i} for i in [1..39])
     
     #console.log("layer_selection");
@@ -762,7 +765,12 @@ class LayerSelection
                .text((d) -> d.layerid)
                .insert("input")
                .attr("type", "checkbox")
-               .property("checked", true)
+               .property("checked", (d) -> 
+                  if (d.layerid==11 or d.layerid==12 or d.layerid==13) 
+                    false 
+                  else 
+                    true
+               )
                .attr("id", (d) -> "id_layer_" + d.layerid)
                .attr("value", (d) -> d.layerid)
                .on "click", (d) -> 
