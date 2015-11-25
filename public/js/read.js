@@ -1518,6 +1518,8 @@
     });
     s3.getObject("stats/stats.json", function(url) {
       return d3.json(url, function(error, dailies) {
+        console.log("reading stats/stats.json");
+        console.log(dailies);
         Progress.plot(dailies);
         return s3.getObject("daily/current/data.json", function(url) {
           return d3.json(url, function(error, data) {

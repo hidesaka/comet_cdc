@@ -1078,7 +1078,8 @@ $ ->
 
   s3.getObject "stats/stats.json", (url) ->
     d3.json url, (error, dailies) ->
-      #console.log(dailies)
+      console.log "reading stats/stats.json"
+      console.log(dailies)
 
       Progress.plot(dailies)
 
