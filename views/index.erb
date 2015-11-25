@@ -17,9 +17,6 @@
       <script src="js/wire.js" type="text/javascript"></script>
       -->
       <script src="js/read.js" type="text/javascript"></script>
-      <script src="js/zip.js/WebContent/zip.js" type="text/javascript"></script>
-      <script src="js/zipjs_wrapper.js" type="text/javascript"></script>
-      <script src="js/file-upload.js" type="text/javascript"></script>
       <script src="js/spin.js/spin.min.js" type="text/javascript"></script>
    </head>
    <body>
@@ -36,7 +33,6 @@
          <li><a href="#menu_tension" data-toggle="tab">Tension</a></li>
          <li><a href="#menu_endplate" data-toggle="tab">Endplate</a></li>
          <li><a href="#menu_files" data-toggle="tab">Files</a></li>
-         <li><a href="#menu_upload" data-toggle="tab">Upload</a></li>
       </ul>
 
       <div class="tab-content">
@@ -106,48 +102,6 @@
                (format: Date | Time | Temperature(℃) | Humidity(%))
             </ul>
             </p>
-         </div>
-         <div class="tab-pane fade" id="menu_upload">
-            <p>
-            <h5>COMETCDC.xml</h5>
-            <div id="upload-xml">
-               <input id="upload-form-file" name="file" size="20" type="file"/>
-               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
-               <span id="progress_msg"></span>
-               <span id="error" style="display:none"></span>
-            </div>
-            <div id="upload-json-daily-data">
-               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
-               <span id="progress_msg"></span>
-            </div>
-            <div id="upload-json-daily-stat">
-               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
-               <span id="progress_msg"></span>
-            </div>
-            <div id="upload-json-current-data">
-               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
-               <span id="progress_msg"></span>
-            </div>
-            <div id="upload-json-current-stat">
-               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
-               <span id="progress_msg"></span>
-            </div>
-            <div id="upload-json-stats">
-               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
-               <span id="progress_msg"></span>
-            </div>
-            </p>
-            <hr/>
-            <p>
-            <h5>dial_gauge.csv / tension_bar.csv / outside_2015MMDD.csv / inside_2015MMDD.csv</h5>
-            <form id="upload-csv" method="post" enctype="multipart/form-data">
-               <input id="csv-file" name="file" size="20" type="file" onchange="return upload('#upload-csv', '#csv-file', '/csv_upload');"/>
-               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
-               <span id="progress_msg"></span>
-               <span id="error" style="display:none"></span>
-            </form>
-            </p>
-
          </div>
       </div>
       </section>
