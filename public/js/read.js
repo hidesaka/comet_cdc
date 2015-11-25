@@ -366,7 +366,7 @@
       this.cognitoParams = {
         IdentityPoolId: "us-east-1:435dfdc9-d483-4f5e-8f8b-27e3569ad9af"
       };
-      this.s3BucketName = "comet-cdc";
+      this.s3BucketName = "comet-cdc-remeasure";
       this.s3RegionName = "ap-northeast-1";
       AWS.config.region = this.awsRegion;
       AWS.config.credentials = new AWS.CognitoIdentityCredentials(this.cognitoParams);
@@ -1504,19 +1504,21 @@
         });
       });
     };
+<<<<<<< HEAD
     s3.getObject("csv/dial_gauge.csv", function(url) {
       return d3.csv(url, function(error, csv) {
         return DialGauge.plot(csv);
       });
+=======
+    zipWrapper("#upload-xml #upload-form-file", function(blob) {
+      console.log("starting ajax...");
+      console.log("blog: " + blob);
+      return s3.putObjectWithProgress("zip/" + today_dir + "/COMETCDC.zip", blob, "#upload-xml #upload-form-file", "#upload-xml #progress_msg", "#upload-xml #progress_bar");
+>>>>>>> Change S3.pucket location from comet-cdc to comet-cdc-remeasure
     });
     s3.getObject("stats/stats.json", function(url) {
       return d3.json(url, function(error, dailies) {
         Progress.plot(dailies);
-        s3.getObject("csv/tension_bar.csv", function(url) {
-          return d3.csv(url, function(error, csv) {
-            return Loading.plot(csv, dailies);
-          });
-        });
         return s3.getObject("daily/current/data.json", function(url) {
           return d3.json(url, function(error, data) {
             Progress.plotLayerDays(data);

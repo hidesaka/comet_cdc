@@ -361,7 +361,7 @@ class S3
   constructor: ->
     @awsRegion = "us-east-1"
     @cognitoParams = IdentityPoolId: "us-east-1:435dfdc9-d483-4f5e-8f8b-27e3569ad9af"
-    @s3BucketName = "comet-cdc"
+    @s3BucketName = "comet-cdc-remeasure"
     @s3RegionName = "ap-northeast-1"
     AWS.config.region = @awsRegion
     AWS.config.credentials = new AWS.CognitoIdentityCredentials(@cognitoParams)
@@ -1076,19 +1076,11 @@ $ ->
 
 
 
-  s3.getObject "csv/dial_gauge.csv", (url) ->
-    d3.csv url, (error, csv) ->
-      DialGauge.plot(csv)
-
   s3.getObject "stats/stats.json", (url) ->
     d3.json url, (error, dailies) ->
       #console.log(dailies)
 
       Progress.plot(dailies)
-
-      s3.getObject "csv/tension_bar.csv", (url) ->
-       d3.csv url, (error, csv) ->
-         Loading.plot(csv, dailies)
 
       s3.getObject "daily/current/data.json", (url) ->
         d3.json url, (error, data) ->
