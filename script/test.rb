@@ -213,13 +213,13 @@ def s3_file_list(start_date, end_date)
    prev_date_dir = "none"
    #$s3.list_objects(bucket: "comet-cdc", prefix: $s3_xml_dir).contents.each do |obj|
     #  if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.xml/)
-   $s3.list_objects(bucket: "comet-cdc", prefix: $s3_zip_dir).contents.each do |obj|
+   $s3.list_objects(bucket: "comet-cdc-remeasure", prefix: $s3_zip_dir).contents.each do |obj|
       if (obj.key =~ /(\d\d\d\d)(\d\d)(\d\d)\/+COMETCDC\.zip/)
          date_dir = "#{$1}#{$2}#{$3}"
          date = "#{$1}/#{$2}/#{$3}"
          utime = Time.parse(date)
          s3_res_setup
-         bucket = $s3_res.bucket("comet-cdc")
+         bucket = $s3_res.bucket("comet-cdc-remeasure")
          object = bucket.object(obj.key)
          url = object.presigned_url(:get)
          #puts "presigned_utr -> #{obj.presigned_url(:get, expires_in: 3600)}"
@@ -236,14 +236,14 @@ def s3_write(key, obj)
    s3_setup
 
    key = key.gsub(/\/+/,'/')
-   $s3.put_object(bucket: "comet-cdc", body: obj, key: key)
+   $s3.put_object(bucket: "comet-cdc-remeasure", body: obj, key: key)
 end
 
 def s3_write_json(key, obj)
    s3_setup
 
    key = key.gsub(/\/+/,'/')
-   $s3.put_object(bucket: "comet-cdc", body: obj2json(obj), key: key)
+   $s3.put_object(bucket: "comet-cdc-remeasure", body: obj2json(obj), key: key)
    puts "s3_write_json done #{key}"
 end
 
@@ -253,7 +253,7 @@ def s3_read_json(key)
    key = key.gsub(/\/+/,'/')
    puts "s3_read_json key -> #{key}"
    begin
-      body = $s3.get_object(bucket: "comet-cdc", key: key).body.read
+      body = $s3.get_object(bucket: "comet-cdc-remeasure", key: key).body.read
    rescue
       return []
    end
@@ -266,7 +266,7 @@ def s3_read_csv(key)
    key = key.gsub(/\/+/,'/')
    puts "s3_read_csv key -> #{key}"
    begin
-      body = $s3.get_object(bucket: "comet-cdc", key: key).body.read
+      body = $s3.get_object(bucket: "comet-cdc-remeasure", key: key).body.read
    rescue
       return []
    end

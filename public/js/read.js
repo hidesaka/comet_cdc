@@ -108,7 +108,7 @@
   };
 
   make_daily_data = function(xml) {
-    var data, dataID, date, date_as_int, datum, density, freq, latest_date, layer, layerID, layerid, len1, m, n, tBase, tens, today_date, today_dir, wire, wireID;
+    var data, dataID, date, date_as_int, datum, density, freq, itry, latest_date, layer, layerID, layerid, len1, m, n, o, tBase, tens, today_date, today_dir, wire, wireID;
     today_date = "";
     today_dir = "";
     latest_date = 0;
@@ -125,20 +125,26 @@
         }
         density = wire.getElementsByTagName("Density1")[0].childNodes[0].nodeValue;
         tBase = wire.getElementsByTagName("TBase")[0].childNodes[0].nodeValue;
-        date = wire.getElementsByTagName("Date1")[0].childNodes[0].nodeValue;
-        freq = wire.getElementsByTagName("Frq1")[0].childNodes[0].nodeValue;
-        tens = wire.getElementsByTagName("Ten1")[0].childNodes[0].nodeValue;
-        data = {
-          dataID: dataID,
-          layerID: layerID,
-          wireID: wireID,
-          tBase: tBase,
-          density: density,
-          date: date,
-          freq: freq,
-          tens: tens
-        };
-        datum.push(data);
+        for (itry = o = 1; o <= 10; itry = ++o) {
+          if (!wire.getElementsByTagName("Date" + itry)[0]) {
+            break;
+          }
+          date = wire.getElementsByTagName("Date" + itry)[0].childNodes[0].nodeValue;
+          freq = wire.getElementsByTagName("Frq" + itry)[0].childNodes[0].nodeValue;
+          tens = wire.getElementsByTagName("Ten" + itry)[0].childNodes[0].nodeValue;
+          data = {
+            dataID: dataID,
+            layerID: layerID,
+            wireID: wireID,
+            tBase: tBase,
+            density: density,
+            date: date,
+            freq: freq,
+            tens: tens,
+            itry: itry
+          };
+          datum.push(data);
+        }
         date_as_int = parseInt(date.replace(/\//g, ''));
         if (date_as_int > latest_date) {
           latest_date = date_as_int;
@@ -150,8 +156,12 @@
     return [today_date, today_dir, datum];
   };
 
-  make_stat = function(today_date, prev_stat, daily_data) {
-    var d, days, last_date, last_utime, len1, m, num_ave, num_bad, num_day, num_field, num_sense, num_sum, ref1, stat, utime, wire_tension_kg;
+  make_stat = function(start_date, today_date, prev_stat, daily_data_all) {
+    var d, daily_data, days, last_date, last_utime, len1, m, num_ave, num_bad, num_day, num_field, num_sense, num_sum, ref1, start_utime, stat, utime, wire_tension_kg;
+    start_utime = new Date(start_date + " 00:00:00").getTime();
+    daily_data = _.filter(daily_data_all, function(value) {
+      return utime >= start_utime;
+    });
     days = prev_stat == null ? 1 : prev_stat.days + 1;
     utime = new Date(today_date + " 00:00:00").getTime();
     num_sum = daily_data.length;
@@ -462,11 +472,15 @@
               latest_date = a[1];
             }
           }
-          return _this.getObject("daily/" + latest_date + "/stat.json", function(url) {
-            return d3.json(url, function(data) {
-              return callback(data);
+          if (latest_date === "") {
+            return callback(null);
+          } else {
+            return _this.getObject("daily/" + latest_date + "/stat.json", function(url) {
+              return d3.json(url, function(data) {
+                return callback(data);
+              });
             });
-          });
+          }
         };
       })(this));
     };
@@ -786,14 +800,16 @@
   Progress = (function() {
     function Progress() {}
 
-    Progress.plot = function(dailies) {
-      var d, dailies_subtract, day_space, frame_progress_ave, frame_progress_bad, frame_progress_day, frame_progress_sum, num_bins, svg_progress_ave, svg_progress_bad, svg_progress_day, svg_progress_sum, xaxis_tickValues, xdomain, ydomain_ave, ydomain_bad, ydomain_day, ydomain_sum;
-      dailies_subtract = _.map(dailies, function(value, index, list) {
-        if (index >= 95) {
-          value.num_bad = value.num_bad - 105;
-        }
-        return value;
-      });
+    Progress.plot = function(dailies_arg) {
+      var d, dailies, day_space, frame_progress_ave, frame_progress_bad, frame_progress_day, frame_progress_sum, num_bins, svg_progress_ave, svg_progress_bad, svg_progress_day, svg_progress_sum, xaxis_tickValues, xdomain, ydomain_ave, ydomain_bad, ydomain_day, ydomain_sum;
+      dailies = [];
+      if (_.isArray(dailies_arg)) {
+        dailies = dailies_arg;
+      } else {
+        dailies.push(dailies_arg);
+      }
+      console.log("dailies.length " + dailies.length);
+      console.log(dailies);
       xdomain = (function() {
         var len1, m, results;
         results = [];
@@ -819,13 +835,20 @@
         })
       ];
       ydomain_bad = [
-        0, d3.max(dailies_subtract, function(d) {
+        0, d3.max(dailies, function(d) {
           return d.num_bad;
         })
       ];
+      console.log("=xdomain=");
+      console.log(xdomain);
+      console.log("=xdomain.length=");
+      console.log(xdomain.length);
       num_bins = 15;
       day_space = xdomain.length / num_bins;
       day_space = parseInt(day_space);
+      if (day_space === 0) {
+        day_space = 1;
+      }
       console.log("num_bins " + num_bins);
       console.log("day_space " + day_space);
       console.log("xdomain.length " + xdomain.length);
@@ -886,7 +909,7 @@
           }
         ]
       });
-      return makeBarChart(frame_progress_bad, dailies_subtract, "days", "num_bad", "#6521A0", {
+      return makeBarChart(frame_progress_bad, dailies, "days", "num_bad", "#6521A0", {
         label: [
           {
             data: ["num_bad"]
@@ -1054,9 +1077,6 @@
         }
         return results;
       })();
-      g_layerCheckList[10] = false;
-      g_layerCheckList[11] = false;
-      g_layerCheckList[12] = false;
       layer_selection = (function() {
         var m, results;
         results = [];
@@ -1069,13 +1089,7 @@
       })();
       labels = d3.select("#menu_tension").append("div").html("LayerID").attr("id", "layer_selection").selectAll(".test").data(layer_selection).enter().append("label").attr("class", "label_id_layers").text(function(d) {
         return d.layerid;
-      }).insert("input").attr("type", "checkbox").property("checked", function(d) {
-        if (d.layerid === 11 || d.layerid === 12 || d.layerid === 13) {
-          return false;
-        } else {
-          return true;
-        }
-      }).attr("id", function(d) {
+      }).insert("input").attr("type", "checkbox").property("checked", true).attr("id", function(d) {
         return "id_layer_" + d.layerid;
       }).attr("value", function(d) {
         return d.layerid;
@@ -1456,9 +1470,11 @@
   })();
 
   $(function() {
-    var onFileLoad, s3, spinner, today_date, today_dir;
+    var onFileLoad, s3, spinner, start_date, start_utime, today_date, today_dir;
     spinner = new Spinner(spin_opts).spin($("#status").get(0));
     s3 = new S3();
+    start_date = "2015/12/01";
+    start_utime = new Date(start_date + " 00:00:00").getTime();
     $("#upload-xml #upload-form-file").change(function() {
       var file, reader;
       file = this.files[0];
@@ -1484,16 +1500,20 @@
       daily_dir = "daily/" + today_dir;
       current_dir = "daily/current";
       stats_dir = "stats";
+      console.log("uploading data.json");
       s3.putObjectWithProgress(daily_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-daily-data #progress_msg", "#upload-json-daily-data #progress_bar");
       s3.putObjectWithProgress(current_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-current-data #progress_msg", "#upload-json-current-data #progress_bar");
       s3.getJSON_prev_stat(today_dir, function(prev_stat) {
         var daily_stat;
-        daily_stat = make_stat(today_date, prev_stat, daily_data);
+        daily_stat = make_stat(start_date, today_date, prev_stat, daily_data);
         s3.putObjectWithProgress(daily_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-daily-stat #progress_msg", "#upload-json-daily-stat #progress_bar");
         s3.putObjectWithProgress(current_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-current-stat #progress_msg", "#upload-json-current-stat #progress_bar");
         return s3.getJSON_stats(function(prev_stats) {
           var stats;
-          if (_.last(prev_stats).date !== daily_stat.date) {
+          console.log("getJSON_prev_stats is called!!!");
+          if (!prev_stats) {
+            return s3.putObjectWithProgress(stats_dir + "/stats.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-stats #progress_msg", "#upload-json-stats #progress_bar");
+          } else if (_.last(prev_stats).date !== daily_stat.date) {
             if (prev_stats.date !== daily_stat.date) {
               stats = prev_stats.concat(daily_stat);
             }
@@ -1512,17 +1532,33 @@
 =======
     zipWrapper("#upload-xml #upload-form-file", function(blob) {
       console.log("starting ajax...");
-      console.log("blog: " + blob);
       return s3.putObjectWithProgress("zip/" + today_dir + "/COMETCDC.zip", blob, "#upload-xml #upload-form-file", "#upload-xml #progress_msg", "#upload-xml #progress_bar");
 >>>>>>> Change S3.pucket location from comet-cdc to comet-cdc-remeasure
     });
     s3.getObject("stats/stats.json", function(url) {
-      return d3.json(url, function(error, dailies) {
+      return d3.json(url, function(error, dailies_arg) {
+        var dailies;
         console.log("reading stats/stats.json");
-        console.log(dailies);
+        dailies = [];
+        if (dailies_arg.length === void 0) {
+          dailies.push(dailies_arg);
+        } else {
+          dailies = dailies_arg;
+        }
         Progress.plot(dailies);
+        s3.getObject("csv/tension_bar.csv", function(url) {
+          return d3.csv(url, function(error, csv) {
+            return Loading.plot(csv, dailies);
+          });
+        });
         return s3.getObject("daily/current/data.json", function(url) {
-          return d3.json(url, function(error, data) {
+          return d3.json(url, function(error, data_all) {
+            var data;
+            data = _.filter(data_all, function(d) {
+              var utime;
+              utime = new Date(d.date + " 00:00:00").getTime();
+              return utime >= start_utime;
+            });
             Progress.plotLayerDays(data);
             spinner.stop();
             Endplate.plot(data, dailies[dailies.length - 1]);

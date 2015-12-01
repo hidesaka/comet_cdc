@@ -138,16 +138,28 @@ end
 get '/stats.txt' do
    file = Tempfile.new("stats.txt")
    stats = s3_read_json("stats/stats.json")
-   stats.each do |d|
-      date = d[:date]
-      days =d[:days]
-      num_sum = d[:num_sum]
-      num_sense =d[:num_sense]
-      num_field = d[:num_field]
-      num_bad = d[:num_bad]
-      wire_tension_kg = d[:wire_tension_kg].to_f
+   if not stats.is_a? Array
+      date = stats[:date]
+      days =stats[:days]
+      num_sum = stats[:num_sum]
+      num_sense =stats[:num_sense]
+      num_field = stats[:num_field]
+      num_bad = stats[:num_bad]
+      wire_tension_kg = stats[:wire_tension_kg].to_f
       str = sprintf "%s %s %s %s %s %s %5.2f\n", date, days, num_sum, num_sense, num_field, num_bad, wire_tension_kg
       file.puts str
+   else
+      stats.each do |d|
+         date = d[:date]
+         days =d[:days]
+         num_sum = d[:num_sum]
+         num_sense =d[:num_sense]
+         num_field = d[:num_field]
+         num_bad = d[:num_bad]
+         wire_tension_kg = d[:wire_tension_kg].to_f
+         str = sprintf "%s %s %s %s %s %s %5.2f\n", date, days, num_sum, num_sense, num_field, num_bad, wire_tension_kg
+         file.puts str
+      end
    end
    file.close
    send_file(file.path, {filename: "stats.txt"})

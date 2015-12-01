@@ -120,12 +120,15 @@ make_daily_data = (xml) ->
       continue if not wire.getElementsByTagName("Density1")[0]
       density = wire.getElementsByTagName("Density1")[0].childNodes[0].nodeValue
       tBase = wire.getElementsByTagName("TBase")[0].childNodes[0].nodeValue
-      date = wire.getElementsByTagName("Date1")[0].childNodes[0].nodeValue
-      freq = wire.getElementsByTagName("Frq1")[0].childNodes[0].nodeValue
-      tens = wire.getElementsByTagName("Ten1")[0].childNodes[0].nodeValue
-      data = {dataID: dataID, layerID: layerID, wireID: wireID, tBase: tBase, density: density, date: date, freq: freq, tens: tens}
 
-      datum.push(data)
+      for itry in [1..10]
+        break if not wire.getElementsByTagName("Date#{itry}")[0]
+        date = wire.getElementsByTagName("Date#{itry}")[0].childNodes[0].nodeValue
+        freq = wire.getElementsByTagName("Frq#{itry}")[0].childNodes[0].nodeValue
+        tens = wire.getElementsByTagName("Ten#{itry}")[0].childNodes[0].nodeValue
+        data = {dataID: dataID, layerID: layerID, wireID: wireID, tBase: tBase, density: density, date: date, freq: freq, tens: tens, itry: itry}
+        datum.push(data)
+
       date_as_int = parseInt(date.replace(/\//g, ''))
       if date_as_int > latest_date
         latest_date = date_as_int
@@ -134,7 +137,18 @@ make_daily_data = (xml) ->
   
   [today_date, today_dir, datum]
 
-make_stat = (today_date, prev_stat, daily_data) ->
+make_stat = (start_date, today_date, prev_stat, daily_data_all) ->
+   # choose only entries after start_date
+   start_utime = new Date("#{start_date} 00:00:00").getTime()
+   #console.log("make_stat: start_utime")
+   #console.log(start_utime)
+   daily_data = _.filter daily_data_all, (value) ->
+     utime >= start_utime
+
+   #console.log("make_stat: date_data")
+   #console.log(daily_data_all)
+   #console.log(daily_data)
+   
    days = if not prev_stat? then 1 else prev_stat.days + 1
    #console.log("make_stat: days #{days}")
    utime = new Date("#{today_date} 00:00:00").getTime() # (ms) for D3.js
@@ -374,7 +388,12 @@ class S3
 
   getObject: (name, callback) ->
     @s3.listObjects (err, data) =>
+      #console.log("getObject")
+      #console.log(data)
+      #console.log("name => #{name}")
+      #console.log("== end of data ==")
       for obj in data.Contents when obj.Key==name
+        #console.log(obj)
         callback @s3.getSignedUrl('getObject', {Bucket: @s3BucketName, Key: obj.Key})
    
   putObject: (name, body, callback_upload, callback_progress) ->
@@ -419,9 +438,11 @@ class S3
       #console.log("latest_date #{latest_date}")
       #console.log("today #{today}")
        
-      # check 
-      @getObject "daily/#{latest_date}/stat.json", (url) ->
-        d3.json(url, (data) -> callback(data))
+      if (latest_date == "")
+        callback(null)
+      else
+        @getObject "daily/#{latest_date}/stat.json", (url) ->
+          d3.json(url, (data) -> callback(data))
          
   getJSON_stats: (callback) ->
     @s3.listObjects (err, data) =>
@@ -592,28 +613,39 @@ class Loading
 
 
 class Progress
-  @plot: (dailies) ->
+  @plot: (dailies_arg) ->
 
+    dailies=[]
+    if (_.isArray(dailies_arg))
+      dailies = dailies_arg
+    else
+      dailies.push(dailies_arg)
+
+    console.log("dailies.length #{dailies.length}")
+    console.log(dailies)
     # after 96 days, subtraced by 105
     # This is adhoc so do not forget to delete later
-    dailies_subtract = _.map(dailies, (value, index, list) ->
-      value.num_bad = value.num_bad - 105 if index >= 95
-      value
-    )
-    #console.log("dalies_subtract")
-    #console.log(dailies_subtract)
-
+    ##  dailies_subtract = _.map(dailies, (value, index, list) ->
+    ##    value.num_bad = value.num_bad - 105 if index >= 95
+    ##    value
+    ##  )
 
     #xdomain =  _.map(dailies, (d) ->d.days)
     xdomain = (d.days for d in dailies)
     ydomain_sum = [0, d3.max(dailies, (d) -> d.num_sum)]
     ydomain_day = [0, d3.max(dailies, (d) -> d.num_day)]
     ydomain_ave = [0, d3.max(dailies, (d) -> d.num_ave)]
-    ydomain_bad = [0, d3.max(dailies_subtract, (d) -> d.num_bad)]
+    ydomain_bad = [0, d3.max(dailies, (d) -> d.num_bad)]
+    console.log("=xdomain=")
+    console.log(xdomain)
+    console.log("=xdomain.length=")
+    console.log(xdomain.length)
 
     num_bins = 15
     day_space = xdomain.length / num_bins
     day_space = parseInt(day_space)
+    if (day_space==0)
+      day_space = 1
     console.log("num_bins #{num_bins}")
     console.log("day_space #{day_space}")
     console.log("xdomain.length #{xdomain.length}")
@@ -634,7 +666,7 @@ class Progress
     makeBarChart(frame_progress_sum, dailies, "days","num_sum", "#D70071", {label: [ {data: ["num_sum"]} ]})
     makeBarChart(frame_progress_ave, dailies, "days","num_ave", "#91D48C", {label: [ {data: [(d)->d.num_ave.toFixed(1)]} ]})
     makeBarChart(frame_progress_day, dailies, "days","num_day", "steelblue", {label: [ {data: ["num_day"]} ]})
-    makeBarChart(frame_progress_bad, dailies_subtract, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]})
+    makeBarChart(frame_progress_bad, dailies, "days","num_bad", "#6521A0", {label: [ {data: ["num_bad"]} ]})
 
   @plotLayerDays = (data) ->
     #console.log(data)
@@ -746,9 +778,9 @@ g_layerCheckList = []
 class LayerSelection
   @plot: (data) ->
     g_layerCheckList = (true for i in [0..38])
-    g_layerCheckList[10] = false
-    g_layerCheckList[11] = false
-    g_layerCheckList[12] = false
+    #g_layerCheckList[10] = false
+    #g_layerCheckList[11] = false
+    #g_layerCheckList[12] = false
     layer_selection = ({layerid: i} for i in [1..39])
     
     #console.log("layer_selection");
@@ -765,12 +797,7 @@ class LayerSelection
                .text((d) -> d.layerid)
                .insert("input")
                .attr("type", "checkbox")
-               .property("checked", (d) -> 
-                  if (d.layerid==11 or d.layerid==12 or d.layerid==13) 
-                    false 
-                  else 
-                    true
-               )
+               .property("checked", true)
                .attr("id", (d) -> "id_layer_" + d.layerid)
                .attr("value", (d) -> d.layerid)
                .on "click", (d) -> 
@@ -998,6 +1025,8 @@ $ ->
   #  body = e.target.result
   #  #console.log body
 
+  start_date = "2015/12/01"
+  start_utime = new Date("#{start_date} 00:00:00").getTime()
 
   $("#upload-xml #upload-form-file").change ->
     #console.log "called onFileInput"
@@ -1013,7 +1042,87 @@ $ ->
     reader.onload = onFileLoad
     reader.readAsText(file)
     return
+ 
+   # Date will be determined after reading XML file
+   today_date = "2015/07/27" # for debug
+   today_dir  = "20150727" # for debug
+ 
+   onFileLoad = (e) -> 
+     parser = new DOMParser()
+     xmlDoc = parser.parseFromString(e.target.result, "text/xml")
+     #console.log xmlDoc
+ 
+     # daily_data
+     [today_date, today_dir, daily_data] = make_daily_data(xmlDoc)
+     console.log("TODAY: #{today_date} #{today_dir}")
+ 
+     daily_dir = "daily/#{today_dir}"
+     current_dir = "daily/current" # copy of daily_dir
+     stats_dir = "stats"
+ 
+     console.log("uploading data.json")
+     s3.putObjectWithProgress "#{daily_dir}/data.json", JSON.stringify(daily_data),
+       "#upload-xml",
+       "#upload-json-daily-data #progress_msg",
+       "#upload-json-daily-data #progress_bar"
+ 
+     s3.putObjectWithProgress "#{current_dir}/data.json", JSON.stringify(daily_data),
+       "#upload-xml",
+       "#upload-json-current-data #progress_msg",
+       "#upload-json-current-data #progress_bar"
+ 
+     # daily_stat
+     s3.getJSON_prev_stat today_dir, (prev_stat) ->
+       #console.log("getJSON_prev_stat is called!!!")
+       #console.log(prev_stat)
+       daily_stat = make_stat(start_date, today_date, prev_stat, daily_data)
+       s3.putObjectWithProgress "#{daily_dir}/stat.json", JSON.stringify(daily_stat),
+         "#upload-xml",
+         "#upload-json-daily-stat #progress_msg",
+         "#upload-json-daily-stat #progress_bar"
+ 
+       s3.putObjectWithProgress "#{current_dir}/stat.json", JSON.stringify(daily_stat),
+         "#upload-xml",
+         "#upload-json-current-stat #progress_msg",
+         "#upload-json-current-stat #progress_bar"
+ 
+       # stats
+       s3.getJSON_stats (prev_stats) ->
+         console.log("getJSON_prev_stats is called!!!")
+         if !prev_stats
+           s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(daily_stat),
+             "#upload-xml",
+             "#upload-json-stats #progress_msg",
+             "#upload-json-stats #progress_bar"
 
+         #do not add if date is same.
+         #console.log("_.last(prev_stats).date #{_.last(prev_stats).date}")
+         #console.log("daily_stat.date #{daily_stat.date}")
+         else if _.last(prev_stats).date isnt daily_stat.date
+           stats = prev_stats.concat(daily_stat) if prev_stats.date isnt daily_stat.date
+           s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(stats),
+             "#upload-xml",
+             "#upload-json-stats #progress_msg",
+             "#upload-json-stats #progress_bar"
+         else
+           console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)")
+ 
+     return
+     
+   zipWrapper "#upload-xml #upload-form-file", (blob) -> 
+     console.log("starting ajax...")
+     #console.log("blog: " + blob)
+     s3.putObjectWithProgress "zip/#{today_dir}/COMETCDC.zip", blob, 
+       "#upload-xml #upload-form-file",
+       "#upload-xml #progress_msg",
+       "#upload-xml #progress_bar"
+   
+   
+   s3.getObject "stats/stats.json", (url) ->
+     d3.json url, (error, dailies_arg) ->
+       console.log "reading stats/stats.json"
+
+<<<<<<< HEAD
   # Date will be determined after reading XML file
   today_date = "2015/07/27" # for debug
   today_dir  = "20150727" # for debug
@@ -1095,10 +1204,40 @@ $ ->
           Tension.plot(data)
           TensionHistogram.plot(data,"sense")
           TensionHistogram.plot(data,"field")
+=======
+       dailies = []
+       if (dailies_arg.length==undefined)
+         dailies.push dailies_arg
+       else
+         dailies = dailies_arg
+>>>>>>> Finalize update
 
-  s3.getObject "csv/inside.json", (url) ->
-    d3.json url, (error, inside) ->
-      s3.getObject "csv/outside.json", (url) ->
-        d3.json url, (error, outside) ->
-          TempHumid.plot(inside, outside)
+       Progress.plot(dailies)
 
+       s3.getObject "csv/tension_bar.csv", (url) ->
+         d3.csv url, (error, csv) ->
+           Loading.plot(csv, dailies)
+   
+       s3.getObject "daily/current/data.json", (url) ->
+         d3.json url, (error, data_all) ->
+           data = _.filter data_all, (d) ->
+             utime = new Date("#{d.date} 00:00:00").getTime()
+             utime >= start_utime
+
+           #console.log("daily/current/data.json")
+           #console.log(data)
+           Progress.plotLayerDays(data)
+   
+           spinner.stop()
+   
+           Endplate.plot(data, dailies[dailies.length-1])
+           Tension.plot(data)
+           TensionHistogram.plot(data,"sense")
+           TensionHistogram.plot(data,"field")
+   
+   s3.getObject "csv/inside.json", (url) ->
+     d3.json url, (error, inside) ->
+       s3.getObject "csv/outside.json", (url) ->
+         d3.json url, (error, outside) ->
+           TempHumid.plot(inside, outside)
+   
