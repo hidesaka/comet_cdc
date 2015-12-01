@@ -1524,16 +1524,9 @@
         });
       });
     };
-<<<<<<< HEAD
-    s3.getObject("csv/dial_gauge.csv", function(url) {
-      return d3.csv(url, function(error, csv) {
-        return DialGauge.plot(csv);
-      });
-=======
     zipWrapper("#upload-xml #upload-form-file", function(blob) {
       console.log("starting ajax...");
       return s3.putObjectWithProgress("zip/" + today_dir + "/COMETCDC.zip", blob, "#upload-xml #upload-form-file", "#upload-xml #progress_msg", "#upload-xml #progress_bar");
->>>>>>> Change S3.pucket location from comet-cdc to comet-cdc-remeasure
     });
     s3.getObject("stats/stats.json", function(url) {
       return d3.json(url, function(error, dailies_arg) {

@@ -1122,95 +1122,11 @@ $ ->
      d3.json url, (error, dailies_arg) ->
        console.log "reading stats/stats.json"
 
-<<<<<<< HEAD
-  # Date will be determined after reading XML file
-  today_date = "2015/07/27" # for debug
-  today_dir  = "20150727" # for debug
-
-  onFileLoad = (e) -> 
-    parser = new DOMParser()
-    xmlDoc = parser.parseFromString(e.target.result, "text/xml")
-    #console.log xmlDoc
-
-    # daily_data
-    [today_date, today_dir, daily_data] = make_daily_data(xmlDoc)
-    console.log("TODAY: #{today_date} #{today_dir}")
-
-    daily_dir = "daily/#{today_dir}"
-    current_dir = "daily/current" # copy of daily_dir
-    stats_dir = "stats"
-
-    #console.log("uploading data.json")
-    s3.putObjectWithProgress "#{daily_dir}/data.json", JSON.stringify(daily_data),
-      "#upload-xml",
-      "#upload-json-daily-data #progress_msg",
-      "#upload-json-daily-data #progress_bar"
-
-    s3.putObjectWithProgress "#{current_dir}/data.json", JSON.stringify(daily_data),
-      "#upload-xml",
-      "#upload-json-current-data #progress_msg",
-      "#upload-json-current-data #progress_bar"
-
-    # daily_stat
-    s3.getJSON_prev_stat today_dir, (prev_stat) ->
-      #console.log("getJSON_prev_stat is called!!!")
-      #console.log(prev_stat)
-      daily_stat = make_stat(today_date, prev_stat, daily_data)
-      s3.putObjectWithProgress "#{daily_dir}/stat.json", JSON.stringify(daily_stat),
-        "#upload-xml",
-        "#upload-json-daily-stat #progress_msg",
-        "#upload-json-daily-stat #progress_bar"
-
-      s3.putObjectWithProgress "#{current_dir}/stat.json", JSON.stringify(daily_stat),
-        "#upload-xml",
-        "#upload-json-current-stat #progress_msg",
-        "#upload-json-current-stat #progress_bar"
-
-      # stats
-      s3.getJSON_stats (prev_stats) ->
-        #console.log("getJSON_prev_stats is called!!!")
-        # do not add if date is same.
-        #console.log("_.last(prev_stats).date #{_.last(prev_stats).date}")
-        #console.log("daily_stat.date #{daily_stat.date}")
-        if _.last(prev_stats).date isnt daily_stat.date
-          stats = prev_stats.concat(daily_stat) if prev_stats.date isnt daily_stat.date
-          s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(stats),
-            "#upload-xml",
-            "#upload-json-stats #progress_msg",
-            "#upload-json-stats #progress_bar"
-        else
-          console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)")
-
-    return
-
-
-
-  s3.getObject "stats/stats.json", (url) ->
-    d3.json url, (error, dailies) ->
-      console.log "reading stats/stats.json"
-      console.log(dailies)
-
-      Progress.plot(dailies)
-
-      s3.getObject "daily/current/data.json", (url) ->
-        d3.json url, (error, data) ->
-          #console.log("daily/current/data.json")
-          #console.log(data)
-          Progress.plotLayerDays(data)
-
-          spinner.stop()
-
-          Endplate.plot(data, dailies[dailies.length-1])
-          Tension.plot(data)
-          TensionHistogram.plot(data,"sense")
-          TensionHistogram.plot(data,"field")
-=======
        dailies = []
        if (dailies_arg.length==undefined)
          dailies.push dailies_arg
        else
          dailies = dailies_arg
->>>>>>> Finalize update
 
        Progress.plot(dailies)
 
