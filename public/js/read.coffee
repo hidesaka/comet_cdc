@@ -147,14 +147,15 @@ make_daily_data = (xml) ->
 make_stat = (start_date, today_date, prev_stat, daily_data_all) ->
    # choose only entries after start_date
    start_utime = new Date("#{start_date} 00:00:00").getTime()
-   #console.log("make_stat: start_utime")
-   #console.log(start_utime)
+   console.log("make_stat: start_utime")
+   console.log(start_utime)
+
    daily_data = _.filter daily_data_all, (value) ->
      utime >= start_utime
 
-   #console.log("make_stat: date_data")
-   #console.log(daily_data_all)
-   #console.log(daily_data)
+   console.log("make_stat: date_data")
+   console.log(daily_data_all)
+   console.log(daily_data)
    
    days = if not prev_stat? then 1 else prev_stat.days + 1
    #console.log("make_stat: days #{days}")
@@ -409,6 +410,7 @@ class S3
     upload.on('httpUploadProgress', (event) -> callback_progress(event))
   
   putObjectWithProgress: (name, body, div_file, div_msg, div_bar) ->
+    console.log("putObjectWithProgress is called. name #{name}")
     # initialization
     $(div_msg).show()
     $(div_bar).attr("value", 0)
@@ -436,6 +438,7 @@ class S3
     latest_date = ""
     @s3.listObjects (err, data) =>
       for obj in data.Contents
+        #console.log "getJSON_prev_stat inside obj"
         a = obj.Key.match(/daily\/(\d\d\d\d\d\d\d\d)\/stat.json/)
         continue if not a
         #console.log "match -> a[0] #{a[0]} a[1] #{a[1]}"
@@ -446,6 +449,7 @@ class S3
       #console.log("today #{today}")
        
       if (latest_date == "")
+        #console.log("ldate_date is not found...")
         callback(null)
       else
         @getObject "daily/#{latest_date}/stat.json", (url) ->
@@ -1080,8 +1084,8 @@ $ ->
  
     # daily_stat
     s3.getJSON_prev_stat today_dir, (prev_stat) ->
-      #console.log("getJSON_prev_stat is called!!!")
-      #console.log(prev_stat)
+      console.log("getJSON_prev_stat is called!!!")
+      console.log(prev_stat)
       daily_stat = make_stat(start_date, today_date, prev_stat, daily_data)
       s3.putObjectWithProgress "#{daily_dir}/stat.json", JSON.stringify(daily_stat),
         "#upload-xml",
@@ -1124,7 +1128,6 @@ $ ->
       "#upload-xml #progress_msg",
       "#upload-xml #progress_bar"
 
-   
   s3.getObject "stats/stats.json", (url) ->
     d3.json url, (error, dailies_arg) ->
        console.log "reading stats/stats.json"

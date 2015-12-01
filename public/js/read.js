@@ -194,9 +194,14 @@
   make_stat = function(start_date, today_date, prev_stat, daily_data_all) {
     var d, daily_data, days, last_date, last_utime, len1, m, num_ave, num_bad, num_day, num_field, num_sense, num_sum, ref1, start_utime, stat, utime, wire_tension_kg;
     start_utime = new Date(start_date + " 00:00:00").getTime();
+    console.log("make_stat: start_utime");
+    console.log(start_utime);
     daily_data = _.filter(daily_data_all, function(value) {
       return utime >= start_utime;
     });
+    console.log("make_stat: date_data");
+    console.log(daily_data_all);
+    console.log(daily_data);
     days = prev_stat == null ? 1 : prev_stat.days + 1;
     utime = new Date(today_date + " 00:00:00").getTime();
     num_sum = daily_data.length;
@@ -466,6 +471,7 @@
     };
 
     S3.prototype.putObjectWithProgress = function(name, body, div_file, div_msg, div_bar) {
+      console.log("putObjectWithProgress is called. name " + name);
       $(div_msg).show();
       $(div_bar).attr("value", 0);
       $(div_bar).show();
@@ -1539,6 +1545,8 @@
       s3.putObjectWithProgress(current_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-current-data #progress_msg", "#upload-json-current-data #progress_bar");
       s3.getJSON_prev_stat(today_dir, function(prev_stat) {
         var daily_stat;
+        console.log("getJSON_prev_stat is called!!!");
+        console.log(prev_stat);
         daily_stat = make_stat(start_date, today_date, prev_stat, daily_data);
         s3.putObjectWithProgress(daily_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-daily-stat #progress_msg", "#upload-json-daily-stat #progress_bar");
         s3.putObjectWithProgress(current_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-current-stat #progress_msg", "#upload-json-current-stat #progress_bar");
