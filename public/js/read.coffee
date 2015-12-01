@@ -662,7 +662,7 @@ class Progress
     frame_progress_ave = make_frame(svg_progress_ave, "days", "ave # of stringed wires",       xdomain, ydomain_ave, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
     frame_progress_bad = make_frame(svg_progress_bad, "days", "# of wires to be re-stringed",  xdomain, ydomain_bad, {xaxis_type: "roundBands", xaxis_tickValues: xaxis_tickValues})
   
-    $("#last_day").html("Finished on 2015/11/24 !!")
+    #$("#last_day").html("Finished on 2015/11/24 !!")
     makeBarChart(frame_progress_sum, dailies, "days","num_sum", "#D70071", {label: [ {data: ["num_sum"]} ]})
     makeBarChart(frame_progress_ave, dailies, "days","num_ave", "#91D48C", {label: [ {data: [(d)->d.num_ave.toFixed(1)]} ]})
     makeBarChart(frame_progress_day, dailies, "days","num_day", "steelblue", {label: [ {data: ["num_day"]} ]})

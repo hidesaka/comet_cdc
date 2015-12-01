@@ -883,7 +883,6 @@
         xaxis_type: "roundBands",
         xaxis_tickValues: xaxis_tickValues
       });
-      $("#last_day").html("Finished on 2015/11/24 !!");
       makeBarChart(frame_progress_sum, dailies, "days", "num_sum", "#D70071", {
         label: [
           {
