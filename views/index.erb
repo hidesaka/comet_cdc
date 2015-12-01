@@ -3,7 +3,7 @@
    <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title>COMET CDC Wire Tension Re-Measurement</title>
+      <title>COMET CDC Wire Stringing</title>
       <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
       <link href="css/wire.css" rel="stylesheet" type="text/css" />
       <link href='//fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
@@ -17,13 +17,16 @@
       <script src="js/wire.js" type="text/javascript"></script>
       -->
       <script src="js/read.js" type="text/javascript"></script>
+      <script src="js/zip.js/WebContent/zip.js" type="text/javascript"></script>
+      <script src="js/zipjs_wrapper.js" type="text/javascript"></script>
+      <script src="js/file-upload.js" type="text/javascript"></script>
       <script src="js/spin.js/spin.min.js" type="text/javascript"></script>
    </head>
    <body>
 
       <section class="container">
       <div>
-         <h3>COMET CDC Wire Tension Re-Measurement</h3>
+         <h3>COMET CDC Wire Stringing</h3>
       </div>
 
       <ul class="nav nav-tabs">
@@ -33,6 +36,7 @@
          <li><a href="#menu_tension" data-toggle="tab">Tension</a></li>
          <li><a href="#menu_endplate" data-toggle="tab">Endplate</a></li>
          <li><a href="#menu_files" data-toggle="tab">Files</a></li>
+         <li><a href="#menu_upload" data-toggle="tab">Upload</a></li>
       </ul>
 
       <div class="tab-content">
@@ -58,7 +62,7 @@
          <div class="tab-pane fade" id="menu_tension">
          </div>
          <div class="tab-pane fade" id="menu_endplate">
-            <!-- <div id="menu_gauge"></div> -->
+            <div id="menu_gauge"></div>
             <div id="menu_load_all"></div>
             <div id="menu_load_wire"></div>
             <div id="menu_load_bar"></div>
@@ -90,20 +94,60 @@
                (format: Date | Layer# | Wire# | ApplyTension(g) | LinearDensity(kg/m) | Freq(Hz) | MeasuredTension(g))
                <li><a href="/stats.txt">stats.txt</a>
                (format: Date | Days | #/Total | #/Sense | #/Field | #/Bad | TotalWireTension(kg))
-               <!--
                <li><a href="/dial_gauge.txt">dial_gauge.txt</a>
                (format: Date | Time | Diff@10deg(um) | Diff@90deg(um) | Diff@180deg(um) | Diff@270deg(um))
                <br />
                Diff means difference from value measured at first time
                <li><a href="/tension_bar.txt">tension_bar.txt</a>
                (format: Date | Tension(kg))
-               -->
                <li><a href="/temp_inside.txt">temp_inside.txt</a>
                (format: Date | Time | Temperature(℃) | Humidity(%))
                <li><a href="/temp_outside.txt">temp_outside.txt</a>
                (format: Date | Time | Temperature(℃) | Humidity(%))
             </ul>
             </p>
+         </div>
+         <div class="tab-pane fade" id="menu_upload">
+            <p>
+            <h5>COMETCDC.xml</h5>
+            <div id="upload-xml">
+               <input id="upload-form-file" name="file" size="20" type="file"/>
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
+               <span id="error" style="display:none"></span>
+            </div>
+            <div id="upload-json-daily-data">
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
+            </div>
+            <div id="upload-json-daily-stat">
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
+            </div>
+            <div id="upload-json-current-data">
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
+            </div>
+            <div id="upload-json-current-stat">
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
+            </div>
+            <div id="upload-json-stats">
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
+            </div>
+            </p>
+            <hr/>
+            <p>
+            <h5>dial_gauge.csv / tension_bar.csv / outside_2015MMDD.csv / inside_2015MMDD.csv</h5>
+            <form id="upload-csv" method="post" enctype="multipart/form-data">
+               <input id="csv-file" name="file" size="20" type="file" onchange="return upload('#upload-csv', '#csv-file', '/csv_upload');"/>
+               <progress id="progress_bar" value="0" max="100" style="display:none"></progress>
+               <span id="progress_msg"></span>
+               <span id="error" style="display:none"></span>
+            </form>
+            </p>
+
          </div>
       </div>
       </section>
