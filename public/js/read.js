@@ -98,6 +98,41 @@
         remaining_days += 1;
         continue;
       }
+      if ((day.getMonth() + 1) === 12 && day.getDate() === 28) {
+        num_holidays += 1;
+        remaining_days += 1;
+        continue;
+      }
+      if ((day.getMonth() + 1) === 12 && day.getDate() === 29) {
+        num_holidays += 1;
+        remaining_days += 1;
+        continue;
+      }
+      if ((day.getMonth() + 1) === 12 && day.getDate() === 30) {
+        num_holidays += 1;
+        remaining_days += 1;
+        continue;
+      }
+      if ((day.getMonth() + 1) === 12 && day.getDate() === 31) {
+        num_holidays += 1;
+        remaining_days += 1;
+        continue;
+      }
+      if ((day.getMonth() + 1) === 1 && day.getDate() === 1) {
+        num_holidays += 1;
+        remaining_days += 1;
+        continue;
+      }
+      if ((day.getMonth() + 1) === 1 && day.getDate() === 2) {
+        num_holidays += 1;
+        remaining_days += 1;
+        continue;
+      }
+      if ((day.getMonth() + 1) === 1 && day.getDate() === 3) {
+        num_holidays += 1;
+        remaining_days += 1;
+        continue;
+      }
       remaining_days += 1;
       work_days += 1;
     }

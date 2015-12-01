@@ -95,6 +95,13 @@ get_last_date = (now_utime_sec, num_wires, num_ave) ->
     if (day.getDay()==0 or day.getDay()==6)          then num_holidays+=1; remaining_days+=1; continue;
     if ((day.getMonth()+1)==8 and day.getDate()==13) then num_holidays+=1; remaining_days+=1; continue;
     if ((day.getMonth()+1)==8 and day.getDate()==14) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==12 and day.getDate()==28) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==12 and day.getDate()==29) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==12 and day.getDate()==30) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==12 and day.getDate()==31) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==1 and day.getDate()==1) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==1 and day.getDate()==2) then num_holidays+=1; remaining_days+=1; continue;
+    if ((day.getMonth()+1)==1 and day.getDate()==3) then num_holidays+=1; remaining_days+=1; continue;
     remaining_days+=1
     work_days+=1
 
