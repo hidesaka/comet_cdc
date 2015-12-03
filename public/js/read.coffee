@@ -145,18 +145,14 @@ make_daily_data = (xml) ->
   [today_date, today_dir, datum]
 
 make_stat = (start_date, today_date, prev_stat, daily_data_all) ->
+
    # choose only entries after start_date
    start_utime = new Date("#{start_date} 00:00:00").getTime()
-   console.log("make_stat: start_utime")
-   console.log(start_utime)
 
    daily_data = _.filter daily_data_all, (value) ->
+     utime = new Date("#{value.date} 00:00:00").getTime()
      utime >= start_utime
 
-   console.log("make_stat: date_data")
-   console.log(daily_data_all)
-   console.log(daily_data)
-   
    days = if not prev_stat? then 1 else prev_stat.days + 1
    #console.log("make_stat: days #{days}")
    utime = new Date("#{today_date} 00:00:00").getTime() # (ms) for D3.js
@@ -1084,7 +1080,7 @@ $ ->
  
     # daily_stat
     s3.getJSON_prev_stat today_dir, (prev_stat) ->
-      console.log("getJSON_prev_stat is called!!!")
+      console.log("getJSON_prev_stat is called")
       console.log(prev_stat)
       daily_stat = make_stat(start_date, today_date, prev_stat, daily_data)
       s3.putObjectWithProgress "#{daily_dir}/stat.json", JSON.stringify(daily_stat),
@@ -1097,28 +1093,41 @@ $ ->
         "#upload-json-current-stat #progress_msg",
         "#upload-json-current-stat #progress_bar"
  
-       # stats
+      # stats (list of daily_stat)
       s3.getJSON_stats (prev_stats) ->
-        console.log("getJSON_prev_stats is called!!!")
-        if !prev_stats
+        console.log("getJSON_stats is called")
+        console.log(prev_stats)
+
+        if !prev_stats # first entry
           s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(daily_stat),
             "#upload-xml",
             "#upload-json-stats #progress_msg",
             "#upload-json-stats #progress_bar"
 
-         #do not add if date is same.
-         #console.log("_.last(prev_stats).date #{_.last(prev_stats).date}")
-         #console.log("daily_stat.date #{daily_stat.date}")
-        else if _.last(prev_stats).date isnt daily_stat.date
-          stats = prev_stats.concat(daily_stat) if prev_stats.date isnt daily_stat.date
-          s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(stats),
+        else 
+          stats = []
+          if not _.isArray(prev_stats)
+            stats.push prev_stats
+          else
+            stats = prev_stats
+
+          console.log("=stats=")
+          console.log(stats)
+
+          # do not add if date is same.
+          if daily_stat.date isnt _.last(stats).date
+            stats.push daily_stat
+            console.log("=stats to be uploaded=")
+            console.log(stats)
+
+            s3.putObjectWithProgress "#{stats_dir}/stats.json", JSON.stringify(stats),
             "#upload-xml",
             "#upload-json-stats #progress_msg",
             "#upload-json-stats #progress_bar"
-        else
-          console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)")
+          else
+            console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)")
  
-     return
+    return
      
   zipWrapper "#upload-xml #upload-form-file", (blob) -> 
     console.log("starting ajax...")

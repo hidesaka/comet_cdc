@@ -194,14 +194,11 @@
   make_stat = function(start_date, today_date, prev_stat, daily_data_all) {
     var d, daily_data, days, last_date, last_utime, len1, m, num_ave, num_bad, num_day, num_field, num_sense, num_sum, ref1, start_utime, stat, utime, wire_tension_kg;
     start_utime = new Date(start_date + " 00:00:00").getTime();
-    console.log("make_stat: start_utime");
-    console.log(start_utime);
     daily_data = _.filter(daily_data_all, function(value) {
+      var utime;
+      utime = new Date(value.date + " 00:00:00").getTime();
       return utime >= start_utime;
     });
-    console.log("make_stat: date_data");
-    console.log(daily_data_all);
-    console.log(daily_data);
     days = prev_stat == null ? 1 : prev_stat.days + 1;
     utime = new Date(today_date + " 00:00:00").getTime();
     num_sum = daily_data.length;
@@ -1546,23 +1543,34 @@
       s3.putObjectWithProgress(current_dir + "/data.json", JSON.stringify(daily_data), "#upload-xml", "#upload-json-current-data #progress_msg", "#upload-json-current-data #progress_bar");
       s3.getJSON_prev_stat(today_dir, function(prev_stat) {
         var daily_stat;
-        console.log("getJSON_prev_stat is called!!!");
+        console.log("getJSON_prev_stat is called");
         console.log(prev_stat);
         daily_stat = make_stat(start_date, today_date, prev_stat, daily_data);
         s3.putObjectWithProgress(daily_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-daily-stat #progress_msg", "#upload-json-daily-stat #progress_bar");
         s3.putObjectWithProgress(current_dir + "/stat.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-current-stat #progress_msg", "#upload-json-current-stat #progress_bar");
         return s3.getJSON_stats(function(prev_stats) {
           var stats;
-          console.log("getJSON_prev_stats is called!!!");
+          console.log("getJSON_stats is called");
+          console.log(prev_stats);
           if (!prev_stats) {
             return s3.putObjectWithProgress(stats_dir + "/stats.json", JSON.stringify(daily_stat), "#upload-xml", "#upload-json-stats #progress_msg", "#upload-json-stats #progress_bar");
-          } else if (_.last(prev_stats).date !== daily_stat.date) {
-            if (prev_stats.date !== daily_stat.date) {
-              stats = prev_stats.concat(daily_stat);
-            }
-            return s3.putObjectWithProgress(stats_dir + "/stats.json", JSON.stringify(stats), "#upload-xml", "#upload-json-stats #progress_msg", "#upload-json-stats #progress_bar");
           } else {
-            return console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)");
+            stats = [];
+            if (!_.isArray(prev_stats)) {
+              stats.push(prev_stats);
+            } else {
+              stats = prev_stats;
+            }
+            console.log("=stats=");
+            console.log(stats);
+            if (daily_stat.date !== _.last(stats).date) {
+              stats.push(daily_stat);
+              console.log("=stats to be uploaded=");
+              console.log(stats);
+              return s3.putObjectWithProgress(stats_dir + "/stats.json", JSON.stringify(stats), "#upload-xml", "#upload-json-stats #progress_msg", "#upload-json-stats #progress_bar");
+            } else {
+              return console.log("will not upload stats.json because stats = prev_stats.concat(daily_stat)");
+            }
           }
         });
       });
