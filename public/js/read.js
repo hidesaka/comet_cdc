@@ -1257,11 +1257,13 @@
           }
         }),
         stroke_width: function(d) {
-          if (d.tens < d.tBase * 0.9 || d.tens > d.tBase * 1.1) {
-            return "1px";
-          } else {
-            return "0px";
+          width = "0px";
+          if (d.tBase === "50" && (d.tens < d.tBase * 0.9 || d.tens > d.tBase * 1.1)) {
+            width = "1px";
+          } else if (d.tBase === "80" && (d.tens < 60 || d.tens > 100)) {
+            width = "1px";
           }
+          return width;
         }
       }, [
         {

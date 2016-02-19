@@ -879,7 +879,14 @@ class Tension
                   r: 3
                   stroke: ((d) -> if (d.tBase=="80") then "#3874e3" else "#ed5454"),
                   fill:   ((d) -> if (d.tBase=="80") then "#bdd0f4" else "#f8d7d7"),
-                  stroke_width: (d) -> if (d.tens<d.tBase*0.9 || d.tens>d.tBase*1.1) then "1px" else "0px"
+                  stroke_width: (d) -> 
+                    width="0px" # good
+                    if  (d.tBase=="50" && (d.tens<d.tBase*0.9 || d.tens>d.tBase*1.1) )
+                      width="1px" 
+                    else if (d.tBase=="80" && (d.tens<60 || d.tens>100))
+                      width="1px" 
+
+                    width
                 },
                 [
                   {label:"sense", stroke:"#ed5454", fill:"#f8d7d7", ypos:"15"}
