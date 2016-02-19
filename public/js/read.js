@@ -219,7 +219,7 @@
       if (d.tBase === "50" && (d.tens < 45.0 || d.tens > 55.0)) {
         num_bad++;
       }
-      if (d.tBase === "80" && (d.tens < 72.0 || d.tens > 88.0)) {
+      if (d.tBase === "80" && (d.tens < 60.0 || d.tens > 100.0)) {
         num_bad++;
       }
     }
@@ -1222,19 +1222,19 @@
       makeLine(this.frame_tension, "tension_limit_field", [
         {
           x: xmin,
-          y: 72
+          y: 60
         }, {
           x: xmax,
-          y: 72
+          y: 60
         }
       ]);
       makeLine(this.frame_tension, "tension_limit_field", [
         {
           x: xmin,
-          y: 88
+          y: 100
         }, {
           x: xmax,
-          y: 88
+          y: 100
         }
       ]);
       data_select = _.filter(data, function(d) {

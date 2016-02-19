@@ -167,7 +167,7 @@ make_stat = (start_date, today_date, prev_stat, daily_data_all) ->
    num_bad = 0 
    for d in daily_data
      num_bad++ if d.tBase=="50" and (d.tens<45.0 or d.tens>55.0)
-     num_bad++ if d.tBase=="80" and (d.tens<72.0 or d.tens>88.0)
+     num_bad++ if d.tBase=="80" and (d.tens<60.0 or d.tens>100.0)
    [last_date, last_utime] = get_last_date(utime/1000, num_sum, num_ave)
    stat =  {date: today_date, utime: utime, days: days, num_sum: num_sum, num_sense: num_sense, num_field: num_field, num_day: num_day, num_ave: num_ave, num_bad: num_bad, wire_tension_kg: wire_tension_kg, last_date: last_date, last_utime: last_utime}
    #console.log("make_stat:")
@@ -862,8 +862,8 @@ class Tension
     xmax = d3.max(data, (d) -> parseFloat(d.wireID))
     makeLine(@frame_tension, "tension_limit_sense", [ { x:xmin, y: 45}, {x:xmax, y: 45} ])
     makeLine(@frame_tension, "tension_limit_sense", [ { x:xmin, y: 55}, {x:xmax, y: 55} ])
-    makeLine(@frame_tension, "tension_limit_field", [ { x:xmin, y: 72}, {x:xmax, y: 72} ])
-    makeLine(@frame_tension, "tension_limit_field", [ { x:xmin, y: 88}, {x:xmax, y: 88} ])
+    makeLine(@frame_tension, "tension_limit_field", [ { x:xmin, y: 60}, {x:xmax, y: 60} ])
+    makeLine(@frame_tension, "tension_limit_field", [ { x:xmin, y: 100}, {x:xmax, y: 100} ])
   
     #console.log(layerCheckList);
     data_select = _.filter data, (d) ->
