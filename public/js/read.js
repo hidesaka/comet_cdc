@@ -1242,29 +1242,27 @@
       });
       return makeScatterPlot(this.frame_tension, data_select, "wireID", "tens", {
         r: 3,
-        stroke: (function(d) {
-          if (d.tBase === "80") {
-            return "#3874e3";
-          } else {
+        stroke: function(d) {
+          if (d.tBase === "50") {
             return "#ed5454";
-          }
-        }),
-        fill: (function(d) {
-          if (d.tBase === "80") {
-            return "#bdd0f4";
           } else {
+            return "#3874e3";
+          }
+        },
+        fill: function(d) {
+          if (d.tBase === "50") {
             return "#f8d7d7";
+          } else {
+            return "#bdd0f4";
           }
-        }),
-        stroke_width: function(d) {
-          width = "0px";
-          if (d.tBase === "50" && (d.tens < d.tBase * 0.9 || d.tens > d.tBase * 1.1)) {
-            width = "1px";
-          } else if (d.tBase === "80" && (d.tens < 60 || d.tens > 100)) {
-            width = "1px";
+        },
+        stroke_width: (function(d) {
+          if ((d.tBase === "50" && (d.tens > 45 && d.tens < 55)) || (d.tBase === "80" && (d.tens > 60 && d.tens < 100))) {
+            return "0px";
+          } else {
+            return "1px";
           }
-          return width;
-        }
+        })
       }, [
         {
           label: "sense",
@@ -1315,8 +1313,8 @@
         xmin = 40;
         xmax = 60;
       } else {
-        xmin = 68;
-        xmax = 88;
+        xmin = 58;
+        xmax = 98;
       }
       xstep = (xmax - xmin) / nx;
       xdomain = (function() {
@@ -1356,6 +1354,8 @@
           return g_layerCheckList[d.layerID - 1];
         }
       });
+      console.log("===data_select==");
+      console.log(data_select);
       entries = _.countBy(data_select, function(d) {
         return Math.floor((d.tens - xmin) / xstep);
       });

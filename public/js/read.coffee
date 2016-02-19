@@ -877,17 +877,10 @@ class Tension
     makeScatterPlot @frame_tension, data_select, "wireID", "tens", 
                 {
                   r: 3
-                  stroke: ((d) -> if (d.tBase=="80") then "#3874e3" else "#ed5454"),
-                  fill:   ((d) -> if (d.tBase=="80") then "#bdd0f4" else "#f8d7d7"),
-                  stroke_width: (d) -> 
-                    width="0px" # good
-                    if  (d.tBase=="50" && (d.tens<d.tBase*0.9 || d.tens>d.tBase*1.1) )
-                      width="1px" 
-                    else if (d.tBase=="80" && (d.tens<60 || d.tens>100))
-                      width="1px" 
-
-                    width
-                },
+                  stroke: (d) -> if (d.tBase=="50") then "#ed5454" else "#3874e3",
+                  fill:   (d) -> if (d.tBase=="50") then "#f8d7d7" else "#bdd0f4",
+                  stroke_width: ((d) -> if ( (d.tBase=="50" && (d.tens> 45 && d.tens< 55)) || ((d.tBase=="80" && (d.tens>60 && d.tens<100))) ) then "0px" else "1px"),
+                  },
                 [
                   {label:"sense", stroke:"#ed5454", fill:"#f8d7d7", ypos:"15"}
                   {label:"field", stroke:"#3874e3", fill:"#bdd0f4", ypos:"30"}
@@ -911,8 +904,8 @@ class TensionHistogram
       xmin = 40
       xmax = 60
     else
-      xmin = 68
-      xmax = 88
+      xmin = 58
+      xmax = 98
 
     xstep = (xmax - xmin)/nx
     xdomain = (x for x in [xmin..xmax] by xstep)
@@ -949,8 +942,8 @@ class TensionHistogram
       else 
         return g_layerCheckList[d.layerID-1]
 
-    #console.log("===data_select==")
-    #console.log(data_select)
+    console.log("===data_select==")
+    console.log(data_select)
 
     entries = _.countBy(data_select, (d) -> Math.floor((d.tens - xmin)/xstep))
     bindatum = _.map(xdomain, (e, i) -> {itens: xdomain[i], ents: if entries[i]? then entries[i] else 0})
