@@ -1354,8 +1354,6 @@
           return g_layerCheckList[d.layerID - 1];
         }
       });
-      console.log("===data_select==");
-      console.log(data_select);
       entries = _.countBy(data_select, function(d) {
         return Math.floor((d.tens - xmin) / xstep);
       });

@@ -942,8 +942,8 @@ class TensionHistogram
       else 
         return g_layerCheckList[d.layerID-1]
 
-    console.log("===data_select==")
-    console.log(data_select)
+    #console.log("===data_select==")
+    #console.log(data_select)
 
     entries = _.countBy(data_select, (d) -> Math.floor((d.tens - xmin)/xstep))
     bindatum = _.map(xdomain, (e, i) -> {itens: xdomain[i], ents: if entries[i]? then entries[i] else 0})
