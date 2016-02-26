@@ -1129,6 +1129,14 @@ $ ->
  
     return
      
+  zipWrapper "#upload-xml #upload-form-file", (blob) -> 
+    console.log("starting ajax...")
+    #console.log("blog: " + blob)
+    s3.putObjectWithProgress "zip/#{today_dir}/COMETCDC.zip", blob, 
+      "#upload-xml #upload-form-file",
+      "#upload-xml #progress_msg",
+      "#upload-xml #progress_bar"
+
 
   s3.getObject "stats/stats.json", (url) ->
     d3.json url, (error, dailies_arg) ->

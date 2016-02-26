@@ -1575,6 +1575,10 @@
         });
       });
     };
+    zipWrapper("#upload-xml #upload-form-file", function(blob) {
+      console.log("starting ajax...");
+      return s3.putObjectWithProgress("zip/" + today_dir + "/COMETCDC.zip", blob, "#upload-xml #upload-form-file", "#upload-xml #progress_msg", "#upload-xml #progress_bar");
+    });
     s3.getObject("stats/stats.json", function(url) {
       return d3.json(url, function(error, dailies_arg) {
         var dailies;
