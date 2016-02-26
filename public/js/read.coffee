@@ -973,8 +973,8 @@ class TensionHistogram
 
 
 class TempHumid
-  @plot : (inside, outside) ->
-    data = inside.concat(outside)
+  @plot : (outside) ->
+    data = outside
     svg_temp = append_svg("#menu_temp")
     svg_humid = append_svg("#menu_temp")
     xdomain = d3.extent(data,  (d) -> d.utime)
@@ -1163,9 +1163,7 @@ $ ->
            TensionHistogram.plot(data,"sense")
            TensionHistogram.plot(data,"field")
 
-  s3.getObject "csv/inside.json", (url) ->
-    d3.json url, (error, inside) ->
-      s3.getObject "csv/outside.json", (url) ->
-        d3.json url, (error, outside) ->
-          TempHumid.plot(inside, outside)
+  s3.getObject "csv/outside.json", (url) ->
+    d3.json url, (error, outside) ->
+      TempHumid.plot(outside)
 

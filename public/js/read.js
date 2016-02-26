@@ -1409,9 +1409,9 @@
   TempHumid = (function() {
     function TempHumid() {}
 
-    TempHumid.plot = function(inside, outside) {
+    TempHumid.plot = function(outside) {
       var data, frame_humid, frame_temp, stroke, svg_humid, svg_temp, xdomain, ydomain_humid, ydomain_temp;
-      data = inside.concat(outside);
+      data = outside;
       svg_temp = append_svg("#menu_temp");
       svg_humid = append_svg("#menu_temp");
       xdomain = d3.extent(data, function(d) {
@@ -1609,13 +1609,9 @@
         });
       });
     });
-    return s3.getObject("csv/inside.json", function(url) {
-      return d3.json(url, function(error, inside) {
-        return s3.getObject("csv/outside.json", function(url) {
-          return d3.json(url, function(error, outside) {
-            return TempHumid.plot(inside, outside);
-          });
-        });
+    return s3.getObject("csv/outside.json", function(url) {
+      return d3.json(url, function(error, outside) {
+        return TempHumid.plot(outside);
       });
     });
   });
